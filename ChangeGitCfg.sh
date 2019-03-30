@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Change Git Config
-# Install Git Bash first
-# Remind to custome your configs
+# Install Git Bash first.
+# Execution path must be pure english.
+# Remind to custome your configs.
 
 PREFIX='[Git Config:]'
 
@@ -41,6 +42,7 @@ case $arg in
 		git config --global user.name "{workname}"  # modify
 		git config --global user.email "{workemail}"  # modify
 		git config --global commit.template "{templatePath}"  # modify
+		git config --global core.editor "{editorPath}"  # modify
 		
 		echo "$PREFIX Change Success, current config is Enterprise."
 		sleep 5
