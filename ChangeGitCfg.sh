@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Change Git Config
+# Install Git Bash first
 # Remind to custome your configs
 
 PREFIX='[Git Config:]'
