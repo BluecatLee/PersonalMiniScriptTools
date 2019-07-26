@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HOST=medical-dev
+HOST=dev
 
 function publish() {
 	PARAM=$1
@@ -45,7 +45,6 @@ function publish() {
 	echo "==== Success publish $PARAM ===="
 }
 
-#all
 if [ ! -n "$1" ]; then
 	echo "publish error: params cannot be empty!"
 elif [ "$1" == "all" ]; then
