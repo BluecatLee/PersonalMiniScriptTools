@@ -2,6 +2,8 @@
 
 function restart() {
 	PARAM=$1
+	
+	echo "Restarting $PARAM ..."
 
 	if [[ "$PARAM" == "site" ]] || [[ "$PARAM" == "third" ]] || [[ "$PARAM" == "boss" ]]; then
         	RELEASE=/data/yxcg/$PARAM/yxcg-$PARAM'.jar'
@@ -22,6 +24,8 @@ function restart() {
 	sleep 5
 
 	nohup java -jar ${RELEASE} >> /data/yxcg/log/$PARAM'.log' 2>&1 &
+	
+	echo "Restart $PARAM success!"
 
 }
 
