@@ -1,2 +1,2 @@
-@echo off
+﻿@echo off
 taskkill /f /t /im nginx.exe

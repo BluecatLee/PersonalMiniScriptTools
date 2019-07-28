@@ -1,3 +1,3 @@
-echo open ÎÄ¼þ¼Ð
+ï»¿echo open æ–‡ä»¶å¤¹
 
 start D:\Tools\Nginx\nginx-1.5.1\conf
