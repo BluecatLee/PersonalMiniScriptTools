@@ -1,10 +1,10 @@
-#!/bin/bash
+﻿#!/bin/bash
 # 获取某个启动命令中带有SNAPSHOT的java进程的PID
 PID=`ps axu | grep java | grep SNAPSHOT | awk '{print $2}'`
 # wc 统计(Word Count) -l表示统计行数
 COUNT=`ps axu | grep java | grep SNAPSHOT | wc -l`
 #查找指定目录下的文件 并匹配正则 将匹配成功的文件名赋值给变量
-RELEASE=`find  /data/app -type f | egrep "app.*jar"`
+RELEASE=`find  /data/xx -type f | egrep "app.*jar"`
 
 echo $PID
 echo $RELEASE
@@ -19,7 +19,7 @@ echo $RELEASE
 # >> 表示追加到文件
 # 2>&1 表示把标准错误重定向到标准输出
 if [ $COUNT -gt 0 ];then
-   echo "process is alive"! && kill -s 9 $PID && nohup java -jar ${RELEASE} >> app.log 2>&1 &
+   echo "process is alive"! && kill -s 9 $PID && nohup java -jar ${RELEASE} >> xx.log 2>&1 &
 else
-  nohup java -jar ${RELEASE} >> app.log 2>&1 &
+  nohup java -jar ${RELEASE} >> xx.log 2>&1 &
 fi
