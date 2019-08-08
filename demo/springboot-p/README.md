@@ -1,7 +1,7 @@
 一个springboot项目的启动停止脚本  
 
 `目录结构`  
-`&#160; &#160; &#160; &#160;project`  
+&#160; &#160; &#160; &#160;project  
 		`		--bin`  
 			`			--server.jar`  
 			`			--startup.sh`  
