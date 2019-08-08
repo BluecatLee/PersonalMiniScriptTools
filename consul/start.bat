@@ -1,0 +1,1 @@
+consul agent -data-dir=D:\consul\data -node=bluecat -bind=192.168.10.131 -join=192.168.10.246
