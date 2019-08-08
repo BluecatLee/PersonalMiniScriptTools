@@ -1,0 +1,340 @@
+#master/worker运行方式下 worker进程的个数(一般与cpu核心数相等最好)
+worker_processes  1;
+
+#日志文件目录及级别 默认值：logs/error.log error
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;   
+
+#定义环境变量
+#env VAR1;
+#env VAR2=VALUE;
+
+#嵌入其他配置文件 配置文件可以是mime.types或者vhost/*.conf等
+#include /path/file;
+
+#保存master进程ID的pid文件路径
+#pid logs/nginx.pid;
+
+###
+#是否以守护方式运行nginx 默认on 开启
+#deamon on;
+
+#是否以master/worker方式工作 默认on
+#master_process on;
+
+#是否处理几个特殊的调试点(基本不用) configure时需要加--with-debug参数
+#debug_points [stop|abort];
+
+#限制coredump核心转储文件的大小
+#worker_rlimit_core size;
+#指定dump文件生成目录
+#working_directory path;
+
+#worker进程运行的用户及用户组 默认user nobody nobody;
+#user username[groupname];
+#user  nobody;
+
+#指定worker进程可以打开的最大句柄描述符个数
+#worker_rlimit_nofile limit;
+
+#限制信号队列
+#worker_rlimit_sigpending limit;
+
+#绑定worker进程到指定的CPU内核(仅对linux系统有效)
+#worker_cpu_affinity cpumask [cpumask...];
+
+#ssl硬件加速
+#ssl_engine device;
+
+#系统调用gettimeofday的执行频率(一般不用配置，x86-64架构的gettimeofday只是vsyscall，不是系统调用，代价不大)
+#timer_resolution t;
+
+#进程优先级设置 
+#默认nice值为0，nice值是进程的静态优先级，-20~+19，数字越小优先级越高，不建议比内核进程的nice值(-5)还小
+#worker_priority nice;
+###
+
+events {
+	#每个worker的最大连接数(每个进程可以同时处理的最大连接数)
+    worker_connections  1024;
+	
+	#仅对指定的客户端输出debug级别的日志 configure时需要加--with-debug参数
+	#debug_connection [IP|CIDR];
+	
+	#是否打开accept锁 默认on 打开
+	#负载均衡锁 关闭它会使建立TCP连接的时间更短，但是worker之间的负载会非常不均衡
+	#accept_mutex on;
+	
+	#lock文件的路径 默认logs/nginx.lock
+	#文件锁 如果配置了accept锁且生效或者没有配置accept锁，文件锁没有意义；如果配置了accept锁但是未生效，则文件锁才会生效。
+	#lock_file /path/file;
+	
+	#使用accept锁后到真正建立连接之间的延迟时间
+	#accept_mutex_delay Nms;
+	
+	#批量建立新连接 默认off 关闭
+	#multi_accept [on|off];
+	
+	#选择事件模型 linux系统可供选择的只有poll epoll select，epoll性能最高。nginx会自动选择事件模型
+	#use [kqueue|rtsig|epoll|/dev/poll|select|poll|eventport];
+}
+
+http {
+	#嵌入MIME类型配置文件
+    include       mime.types;
+	
+	#配置MIME类型
+	#配置MIME type与文件扩展的映射
+	#(http server location块均可配置)
+	#type {...};
+	#types {
+	#	text/html html;
+	#	text/html conf;
+	#}
+	
+	#配置默认MIME type
+	#默认 default_type text/plain;
+	#找不到响应的MIME type与文件扩展名之间的映射时，使用默认的MIME type作为HTTP header中的Content-Type
+	#(http server location块均可配置)
+    default_type  application/octet-stream;
+
+	#定义access_log日志格式 可以使用一些模块提供的变量 也可以使用负载均衡功能提供的变量
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+	#开启access_log访问日志
+    #access_log  logs/access.log  main;
+
+	#系统调用 用来发送文件 默认off
+	#(http server location块均可配置)
+    sendfile        on;
+	
+	#打开tcp_nopush后 在发送响应时将整个响应包头放到一个TCP包中发送
+    #tcp_nopush     on;
+
+	#keepalive超时时间 单位秒
+	#(http server lcoation块均可配置)
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+	#定义虚拟主机 一个server块就是一个虚拟主机的定义
+    server {
+		#监听端口 不加端口时 默认80端口 
+		#listen address:port [default_server][ssl]; 
+        listen       80;        
+		#主机名称
+		#server_name name[...];
+        server_name  localhost;
+
+        #charset koi8-r;
+		
+		#access_log  logs/host.access.log  main;
+		
+		#nginx使用散列表来存储server name
+		#设置每个散列桶占用的内存大小及最大大小 加快检索server name的速度，控制散列表的冲突率
+		#(http server location块均可配置)
+		#server_names_hash_bucket_size size;
+		#server_names_hash_max_size size;
+		
+		#重定向主机名称的处理 默认on 表示在重定向请求时会使用server_name里配置的第一个主机名代替原先请求中的Host头部，off表示使用请求本身的Host头部
+		#(http server location块均可配置)
+		#server_name_in_redirect on|off;
+		
+		
+		#location [=|~|~*|^~|@] /uri/ {...}
+		#=表示对uri进行完全匹配
+		#~表示匹配uri时大小写敏感
+		#~*表示匹配uri时忽略大小写
+		#^~表示匹配uri时只需前半部分与uri匹配即可 即以uri开头的请求路径都会匹配到
+		#@表示nginx服务内部请求之间的重定向 不直接处理用户请求
+		#可以直接使用正则表达式
+		#匹配多个location时 会被第一个location处理
+		#/可以匹配所有请求
+		#\表示转义
+        location / {
+			#以root方式设置资源路径 root path; 默认root html;
+			#(http server location if块均可以配置)
+            root   html;
+			
+			#以alias方式设置资源路径 path中可以使用正则表达式 在uri向实际文件路径映射的过程中 会把uri去掉
+			#alias path;
+			
+			#访问首页 【接收到/请求后，会首先访问html/index.htm,再访问html/index.html】
+			#(http server location块均可配置)
+			#ngx_http_index_module模块提供的index配置
+            index  index.html index.htm;
+			
+			#限制客户端请求的HTTP方法名 method参数表示被禁止的方法
+			#limit_expect method ... {...}
+			#limit_expect GET {
+			#	allow 192.168.1.0/32;
+			#   deny all;
+			#}
+        }
+
+		#根据响应码重定向页面或者重定向到另一个location 重定向了页面 但是响应码还是原来的 可以通过=code指定重定向后的响应码
+		#(http server location if块均可以配置)
+        #error_page  404              /404.html;
+
+        # redirect server error pages to the static page /50x.html
+        #
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+		
+		#是否允许递归使用error_page 默认off
+		#(http server location块均可配置)
+		#recursive_error_pagesn [on|off];
+		
+		#尝试按照顺序访问每一个path 如果都匹配不到 则重定向到最后的参数uri上
+		#(server lcoation块均可配置)
+		#try_files path1 [path2...] uri;
+		
+        # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+        #
+        #location ~ \.php$ {
+        #    proxy_pass   http://127.0.0.1;
+        #}
+
+        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+        #
+        #location ~ \.php$ {
+        #    root           html;
+        #    fastcgi_pass   127.0.0.1:9000;
+        #    fastcgi_index  index.php;
+        #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+        #    include        fastcgi_params;
+        #}
+
+        # deny access to .htaccess files, if Apache's document root
+        # concurs with nginx's one
+        #
+        #location ~ /\.ht {
+		#    deny  all;
+        #}
+    }
+
+
+    # another virtual host using mix of IP-, name-, and port-based configuration
+    #
+    #server {
+    #    listen       8000;
+    #    listen       somename:8080;
+    #    server_name  somename  alias  another.alias;
+
+    #    location / {
+    #        root   html;
+    #        index  index.html index.htm;
+    #    }
+    #}
+
+
+    # HTTPS server
+    #
+    #server {
+    #    listen       443 ssl;
+    #    server_name  localhost;
+
+    #    ssl_certificate      cert.pem;
+    #    ssl_certificate_key  cert.key;
+	
+	#    ssl_session_cache    shared:SSL:1m;
+    #    ssl_session_timeout  5m;
+
+    #    ssl_ciphers  HIGH:!aNULL:!MD5;
+    #    ssl_prefer_server_ciphers  on;
+
+    #    location / {
+    #        root   html;
+    #        index  index.html index.htm;
+    #    }
+    #}
+	
+	#########################################################################
+	
+	#负载均衡配置【ngx_http_proxy_module】
+	upstream sampleapp { 
+		#ip_hash;
+		#确保同一个客户端的请求只转发到指定的上游服务器中，比如需要单点登录的时候 session只存在一个上游服务器 用户后续的所有访问必须都是同一个服务器 否则会登录失效
+		#根据客户端的ip地址计算出一个key，将key按照upstream集群里的上游服务器数量进行取模，以取模后的结果将请求转发到相应的上游服务器中
+		#ip_hash与weight配置不可同时使用
+	
+		#server name [parameters];
+		#name可以是域名、IP地址端口、UNIX句柄
+		#weight:指定轮询几率，weight的值和访问比率成正比，值越大被访问到的次数越高，方便处理后端服务器性能不均的情况（两个值相同表示平分负载，各处理一半请求）。
+		server  192.168.100.107:8080 weight=1;
+		server  192.168.100.113:8080 weight=1;
+		
+	}
+	
+	server {
+        listen       80;
+        server_name  manage.jiaobu.com;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+		#配置反向代理转发请求时转发请求中的Host头部
+		#proxy_set_header Host $host;
+		
+		#配置转发时的协议方法名 比如源请求GET方法在转发时会变成POST请求
+		#(http server location块均可配置)
+		#proxy_method POST;
+		
+		proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location / {
+			#反向代理的配置，使用负载均衡的即可
+			#proxy_pass http://sampleapp;
+			proxy_pass http://127.0.0.1:8081;
+			proxy_connect_timeout 600;
+			proxy_read_timeout 600;
+        }
+        
+    }
+	
+	server {
+        listen       80;
+        server_name  static.jiaobu.com;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+		proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location / {
+			root  D:/Temp/static;
+        }
+        
+    }
+	
+	server {
+        listen       80;
+        server_name  image.jiaobu.com;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+		proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location / {
+			root  D:/Temp/upload;
+        }
+        
+    }
+
+}
