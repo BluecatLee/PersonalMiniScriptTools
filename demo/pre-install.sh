@@ -53,8 +53,13 @@ wget http://$HOST/lib/lib.tar.gz && tar zxf lib.tar.gz && mkdir jdk && tar zxf j
 
 # 移动jdk目录到上级目录下 即/data/下
 # mv -i有同名文件时询问是否覆盖 -f不询问
-# 创建jdk.sh文件并写入、追加内容 【输出重定向 >重写文件 >>追加内容】
+# 创建jdk.sh文件并写入、追加内容 【输出重定向 >重写文件 >>追加内容】 (设置的环境变量在当前环境中并未生效 todo)
 # 给jdk.sh文件添加可执行权限 并移动到/etc/profile.d目录下
+
+# 环境变量PWD 此处值为/data/tmp/
+# dirname 获取父级目录名
+# $() 命令替换 同``
+# ${} 变量替换 $PWD 等效 ${PWD}
 mv -f jdk ../ && echo "export JAVA_HOME=$(dirname "$PWD")/jdk" > jdk.sh && echo 'export PATH=$PATH:$JAVA_HOME/bin' >> jdk.sh && chmod +x jdk.sh && mv -f jdk.sh /etc/profile.d
 
 # epel-release软件包：自动配置yum仓库
