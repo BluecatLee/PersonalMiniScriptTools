@@ -71,8 +71,8 @@ yum -y install epel-release
 yum -y install nginx && systemctl enable nginx && sed -i "s/servername/$IP/g" ymxc1.conf && sed -i "s/servername/$IP/g" ymxc.conf && mv -f ymxc.conf ymxc1.conf /etc/nginx/conf.d/ && systemctl restart nginx 
 
 # 移动脚本
-# /etc/crontab中追加定时规则 每分钟执行一次看门狗【看门狗程序自行实现】
-mv -f autoproxy watchdog.sh ymxcnc /usr/bin && echo '*/1 * * * * root watchdog.sh' >> /etc/crontab
+# /etc/crontab中追加定时规则 每分钟执行一次看门狗【看门狗程序autoproxy watchdog.sh 自行实现】
+# mv -f autoproxy watchdog.sh ymxcnc /usr/bin && echo '*/1 * * * * root watchdog.sh' >> /etc/crontab
 
 # 安装redis并设为开机启动 重启redis
 yum -y install redis && systemctl enable redis && systemctl restart redis
