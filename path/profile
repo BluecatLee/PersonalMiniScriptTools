@@ -1,0 +1,115 @@
+# /etc/profile
+
+# System wide environment and startup programs, for login setup
+# Functions and aliases go in /etc/bashrc
+
+# It's NOT a good idea to change this file unless you know what you
+# are doing. It's much better to create a custom.sh shell script in
+# /etc/profile.d/ to make custom changes to your environment, as this
+# will prevent the need for merging in future updates.
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+
+pathmunge () {
+    # 判断当前系统的PATH中是否有该命令的目录
+    case ":${PATH}:" in
+        *:"$1":*)
+            ;;
+        *)
+		    # 没有 则判断是要将该目录放于PATH之前还是之后
+            if [ "$2" = "after" ] ; then
+                PATH=$PATH:$1
+            else
+                PATH=$1:$PATH
+            fi
+    esac
+}
+
+# /usr/bin/id存在且具有可执行权限
+# id命令用于显示用户的id及所属群组的id
+# -u 显示用户id
+# -ru 显示实际id(real uid)
+# -un 显示用户名(uid name)
+# -gn 显示所属组名(group name)
+if [ -x /usr/bin/id ]; then
+    # -z $EUID的长度为0(空串)则为真
+	# EUID 有效用户id 一般来说和UID相等 (修改有效用户id的作用就是某些情况下可以获取特权)
+	# UID RUID 实际用户id 登陆后不变
+	# 决定权限的是有效用户
+    if [ -z "$EUID" ]; then
+        # ksh workaround
+        EUID=`/usr/bin/id -u`
+        UID=`/usr/bin/id -ru`
+    fi
+    USER="`/usr/bin/id -un`"
+    LOGNAME=$USER
+    MAIL="/var/spool/mail/$USER"
+fi
+
+# Path manipulation
+# 路径计算 
+# "$EUID" = "0" 表示是root用户 PATH向前追加, 非root用户PATH在后追加
+if [ "$EUID" = "0" ]; then
+    # 在当前PATH变量前追加/usr/local/sbin:/usr/sbin:
+    pathmunge /usr/sbin
+    pathmunge /usr/local/sbin
+else
+    # 在当前PATH变量后追加:/usr/local/sbin:/usr/sbin
+    pathmunge /usr/local/sbin after
+    pathmunge /usr/sbin after
+fi
+
+# hostname 获取主机名
+# 2>/dev/null 将标准错误重定向到/dev/null
+HOSTNAME=`/usr/bin/hostname 2>/dev/null`
+# HISTSIZE 历史命令记录数 默认1000条
+HISTSIZE=1000
+# HISTCONTROL 控制历史的记录方式
+# ignorespace 默认值，忽略重复命令
+# ignoreboth 忽略所有以空格开头的命令
+# ignoredups ignorespace和ignoreboth的组合
+if [ "$HISTCONTROL" = "ignorespace" ] ; then
+    export HISTCONTROL=ignoreboth
+else
+    export HISTCONTROL=ignoredups
+fi
+
+# 导出环境变量PATH(可执行文件路径) USER(用户名) LOGNAME(登录名) MAIL(邮箱) HOSTNAME(主机名) HISTSIZE(历史命令记录数) HISTCONTROL(控制历史的记录方式)
+export PATH USER LOGNAME MAIL HOSTNAME HISTSIZE HISTCONTROL
+
+# By default, we want umask to get set. This sets it for login shell
+# Current threshold for system reserved uid/gids is 200
+# You could check uidgid reservation validity in
+# /usr/share/doc/setup-*/uidgid file
+
+# umask 设置用户创建文件的默认权限 
+# 如果uid大于199且用户名等于组名 
+if [ $UID -gt 199 ] && [ "`/usr/bin/id -gn`" = "`/usr/bin/id -un`" ]; then
+    # umask值002 所对应的文件和目录创建缺省权限分别为664和775 (002相当于在最后一个rwx上减w)
+    umask 002
+else
+    # umask值022 所对应的文件和目录创建缺省权限分别为644和755
+    umask 022
+fi
+
+# 遍历/etc/profile.d/下后缀为.sh的文件 和sh.local文件        
+for i in /etc/profile.d/*.sh /etc/profile.d/sh.local ; do
+    # -r 文件存在且可读
+    if [ -r "$i" ]; then
+	    # $- 意味着shell标志
+		# ${-#*i}意味着shell标志减去第一个匹配*i
+		# 不相等则该shell脚本是交互式的
+        if [ "${-#*i}" != "$-" ]; then
+            . "$i"
+        else
+		    # 执行当前脚本并将输出重定向到/dev/null
+            . "$i" >/dev/null
+        fi
+    fi
+done
+
+# unset 取消设置变量 避免变量值污染 因为i pathmunge 变量仍在当前shell进程中
+# -f 仅删除函数
+# -v 仅删除变量
+unset i
+unset -f pathmunge
