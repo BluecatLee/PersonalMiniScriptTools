@@ -6,7 +6,7 @@ const ora = require('ora')
 const chalk = require('chalk')
 const spinner = ora('building for release...')
 
-const TOKEN = 'EXyt_nxDarAvFB9nXN_G';
+const TOKEN = '【token】';
 
 function exec (cmd) {
   return require('child_process')
