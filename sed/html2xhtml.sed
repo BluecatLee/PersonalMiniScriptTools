@@ -1,4 +1,7 @@
-# just a demo
+## just a demo, just convert unstandard html tags into lower letters
+## usage:
+## /bin/sed -i -f [this file] [target files]
+## if add '#!/bin/sed -f' at first of this file, exec like this: ./html2xhtml.sed -i [target files] 
 s/<H1>/<h1>/g
 s/<H2>/<h2>/g
 s/<H3>/<h3>/g
