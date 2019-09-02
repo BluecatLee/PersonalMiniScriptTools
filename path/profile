@@ -8,7 +8,8 @@
 # /etc/profile.d/ to make custom changes to your environment, as this
 # will prevent the need for merging in future updates.
 
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+# eg：
+# PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
 
 pathmunge () {
     # 判断当前系统的PATH中是否有该命令的目录
