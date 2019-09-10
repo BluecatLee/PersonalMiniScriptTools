@@ -60,7 +60,7 @@ wget http://$HOST/lib/lib.tar.gz && tar zxf lib.tar.gz && mkdir jdk && tar zxf j
 # dirname 获取父级目录名
 # $() 命令替换 同``
 # ${} 变量替换 $PWD 等效 ${PWD}
-mv -f jdk ../ && echo "export JAVA_HOME=$(dirname "$PWD")/jdk" > jdk.sh && echo 'export PATH=$PATH:$JAVA_HOME/bin' >> jdk.sh && chmod +x jdk.sh && mv -f jdk.sh /etc/profile.d
+mv -f jdk ../ && echo "export JAVA_HOME=$(dirname "$PWD")/jdk" > jdk.sh && echo 'export PATH=$PATH:$JAVA_HOME/bin' >> jdk.sh && mv -f jdk.sh /etc/profile.d
 
 # epel-release软件包：自动配置yum仓库
 yum -y install epel-release 
