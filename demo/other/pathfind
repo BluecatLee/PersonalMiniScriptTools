@@ -1,6 +1,7 @@
 #! /bin/sh -
 
 # pathfind [--all] [--?] [--help] [--version] envvar pattern(s)
+# eg：pathfind -a PATH ls
 
 # 输入字段分隔字符
 # IFS="\040\t\n"
