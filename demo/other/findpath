@@ -1,0 +1,121 @@
+#! /bin/sh -
+
+# pathfind [--all] [--?] [--help] [--version] envvar pattern(s)
+
+# 输入字段分隔字符
+# IFS="\040\t\n"
+IFS='
+        '
+
+OLDPATH="$PATH"
+
+PATH=/bin:/usr/bin
+export PATH
+
+error() {
+        echo "$@" 1>&2
+        usage_and_exit 1
+}
+
+usage() {
+        echo "Usage: $PROGRAM [-all] [--?] [--help] [--version] envvar pattern(s)"
+}
+
+usage_and_exit() {
+        usage
+        exit $1
+}
+
+version() {
+        echo "$PROGRAM version $VERSION"
+}
+
+warning() {
+        echo "$@" 1>&2
+		# EXITCODE=$((EXITCODE + 1))
+        EXITCODE=`expr $EXITCODE + 1`
+}
+
+all=no
+envvar=
+EXITCODE=0
+# $0: 当前文件名
+# basename 去掉路径前缀 
+# PROGRAM=findpath
+PROGRAM=`basename $0`
+VERSION=1.0
+
+# $#: 参数个数
+# $1: 第一个参数 shift: 参数左移
+# $@: 所有参数内容
+while test $# -gt 0
+do
+        case $1 in
+                --all | --al | --a | -all | -al | -a )
+                        all=yes
+                        ;;
+                --help | --hel | --he | --h | -help | -hel | -he | -h | '-?' )
+                        usage_and_exit 0
+                        ;;
+                --version | --versio | --versi | --vers | --ver | --ve | --v | \
+                -version | -versio | -versi | -vers | -ver | -ve | -v )
+                        version
+                        exit 0
+                        ;;
+                -*)
+                        error "Unrecognized option: $1"
+                        ;;
+                *)
+                        break
+                        ;;
+        esac
+        shift
+done
+
+envvar="$1"
+test $# -gt 0 && shift
+
+# x: 避免变量展开
+# 如果用户提供的环境变量是PATH 重设
+test "x$envvar" = "xPATH" && envvar=OLDPATH
+
+# ${'"$envvar"'} ''：避免变量进一步展开
+dirpath=`eval echo '${'"$envvar"'}' 2>/dev/null | tr : ' '`
+
+if test -z "$envvar"
+then
+        error Environment variable missing or empty
+elif test "x$dirpath" = "x$envvar"
+then
+        error "Broken sh on this platform: cannot expand $envvar"
+elif test -z "$dirpath"
+then
+        error Empty directory search path
+elif test $# -eq 0
+then
+        exit 0
+fi
+
+for pattern in "$@"
+do
+        result=
+        for dir in $dirpath
+        do
+                for file in $dirpath/$pattern
+                do
+                        if test -f "$file"
+                        then
+                                result="$file"
+                                echo $result
+								# break 2: 终止两层循环
+                                test "$all" = "no" && break 2
+                        fi
+                done
+        done
+        test -z "$result" && warning "$pattern: not found"
+done
+
+# 退出码限制最大125
+test $EXITCODE -gt 125 && EXITCODE=125
+
+exit $EXITCODE
