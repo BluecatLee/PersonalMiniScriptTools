@@ -32,7 +32,7 @@ version() {
 
 warning() {
         echo "$@" 1>&2
-		# EXITCODE=$((EXITCODE + 1))
+	# EXITCODE=$((EXITCODE + 1))
         EXITCODE=`expr $EXITCODE + 1`
 }
 
@@ -101,13 +101,13 @@ do
         result=
         for dir in $dirpath
         do
-                for file in $dirpath/$pattern
+                for file in $dir/$pattern
                 do
                         if test -f "$file"
                         then
                                 result="$file"
                                 echo $result
-								# break 2: 终止两层循环
+				# break 2: 终止两层循环
                                 test "$all" = "no" && break 2
                         fi
                 done
