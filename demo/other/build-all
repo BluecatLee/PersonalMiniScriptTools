@@ -2,18 +2,18 @@
 # build one or several packages on one or several hosts, in parallel process style.
 
 # Grammer:
-#       build-all [ --? ]
+#       build-all [ --? ] 显示帮助
 #                 [ --all "..." ]
 #                 [ --cd "..." ]
 #                 [ --check "..." ]
 #                 [ --configure "..." ]
 #                 [ --environment "..." ]
-#                 [ --help ]
-#                 [ --logdirectory dir ]
-#                 [ --on "[user@]host[:dir][,envfile] ..." ]
-#                 [ --source "dir..." ]
-#                 [ --userhosts "file(s)" ]
-#                 [ --version ]
+#                 [ --help ] 显示帮助
+#                 [ --logdirectory dir ] 指定日志目录
+#                 [ --on "[user@]host[:dir][,envfile] ..." ] 指定主机
+#                 [ --source "dir..." ] # 指定包的位置
+#                 [ --userhosts "file(s)" ] 指定主机(文件中获取)
+#                 [ --version ] 显示版本信息
 #                 package(s)
 
 # Available init files:
@@ -33,24 +33,36 @@ umask $UMASK
 build_one() {
 	# Grammer
 	# 	build_one [user@]host[:build-directory][,envfile]
+	
+	# eg
+	#   build_one bluecat@github.co:/local/build,$HOME/.build/c99
+	
+	# 展开userhost参数里可能存在的环境变量
 	arg="`eval echo $1`"
 	
+	# 删除冒号及冒号后的任何东西
 	userhost="`echo $arg | sed -e 's/:.*$//'`"
 	
+	# 获取用户名称 如果为空 则使用$USER (当登录的远程主机的user与本地登录的user一致时可以省略user)
 	user="`echo $userhost | sed -e s'/@.*$//'`"
 	test "$user" = "$userhost" && user=$USER
 	
+	# 获取主机信息
 	host="`echo $userhost | sed -e s'/^[^@]*@//'`"
 	
+	# 获取环境变量文件名称
 	envfile="`echo $userhost | sed -e s'/^[^,]*,//'`"
 	test "$envfile" = "$arg" && envfile=/dev/null
 	
+	# 获取在远程主机上的构建目录 如果未指定 则构建到远程主机的/tmp下
 	builddir="`echo $arg | sed -e s'/^.*://' -e 's/,.*//'`"
 	test "$builddir" = "$arg" && builddir=/tmp
 	
+	# 文件名
 	parbase=`basename $PARFILE`
 	
-	# 如果这些模式被更换过 则更新find_package()
+	# 包名称
+	## 如果这些模式被更换过 则更新find_package()
 	package="`echo $parbase | \
 					sed -e 's/[.]jar$//' \
 						-e 's/[.]tar[.]bz2$//' \
@@ -64,6 +76,7 @@ build_one() {
 	echo $SSH $SSHFLAGS $userhosts "test -f $PARFILE"
 	if $SSH $SSHFLAGS $userhosts "test -f $PARFILE"
 	then 
+		# parbaselocal用来区分归档文件的临时版本与先前已存在版本的区别
 		parbaselocal=$PARFILE
 	else
 		parbaselocal=$parbase
@@ -72,11 +85,19 @@ build_one() {
 	fi
 	
 	# 在远程主机上解开存档文件、构建，及以后台执行方式检查它
+	# unzip不支持管道
 	sleep 1 #为了保证唯一的日志文件名
 	now="`date $DATEFLAGS`" 
 	logfile="$package.$host.$now.log"
+	
+	# nice [OPTION] [COMMAND [ARG]...] 改变进程优先级(为即将运行的进程设置优先级 修改正在运行的进程的优先级使用renice)
+	# nice 没有选项和命令时 输出0 表示进程缺省的niceness值是0
+	# nice -n 指定niceness值 范围-20到19 默认为10 值越小优先级越高
 	nice $SSH $SSHFLAGS $userhost "
 			echo '=========================================================' ;
+			
+			# BUILDBEGIN作用：登录定制
+			# Bourne-Shell家族使用点号命令执行脚本， C-Shell家族使用source命令，bash和zsh两种命令都支持
 			test -f $BUILDBEGIN && . $BUILDBEGIN || test -f $BUILDBEGIN && source $BUILDBEGIN || true ;
 			echo 'Package:				$package' ;
 			echo 'Archive:				$PARFILE' ;
@@ -88,10 +109,13 @@ build_one() {
 			echo 'Remote user:			$user' ;
 			echo 'Remote host:			$host' ;
 			echo 'Remote directory:		$builddir' ;
+			# 打印开始时间 用于分析远程主机上的构建时间
 			printf 'Remote date:			' ;
 			date $DATEFLAGS ;
+			# 打印远程主机操作系统信息
 			printf 'Remote uname:			' ;
 			uname -a || true ;
+			# 打印GNU编译器的版本信息
 			printf 'Remote gcc version:		' ;
 			gcc --version | head -n 1 || echo ;
 			printf 'Remote g++ version:		' ;
@@ -102,26 +126,38 @@ build_one() {
 			echo 'Configure flags:		$CONFIGUREFLAGS' ;
 			echo 'Make all targets；	$ALLTARGETS' ;
 			echo 'Make check targets:	$CHECKTARGETS' ;
+			# 报告磁盘空间(构建前)
 			echo 'Disk free report for $builddir/$package:' ;
 			df $builddir | $INDENT ;
+			# configure和make可能被环境变量影响 需要排序日志文件标头
 			echo 'Environment:' ;
+			# env LC_ALL=C：去除所有本地化配置,确保脚本可正常运行与所有shell下
 			env | env LC_ALL=C sort | $INDENT ;
 			echo '=========================================================' ;
+			# 在远程系统上设置权限掩码
 			umask $UMASK ;
+			# 切换都构建目录
 			cd $builddir || exit 1;
+			# 删除所有旧的归档文件
+			# 使用rm的绝对路径是因为远程主机上的该命令可能被设置了具有-i交互选项的别名
 			/bin/rm -rf $builddir/$package ;
+			# 解压
 			$PAR $parbaselocal ;
 			test "$parbase" = "$parbaselocal" && /bin/rm -rf $parbase ;
 			cd $package/$CONFIGUREDIR || exit 1 ;
+			# 前置的time命令可以报告命令的执行时间
 			test -f configure && chmod a+x configure && env `$STRIPCOMMENTS $envfile | $JOINLINES` \
 				$EXTRAENVIRONMENT nice time ./configure $CONFIGUREFLAGS ;
 			nice time make $ALLTARGETS && nice time make $CHECKTARGETS ;			
 			echo '=========================================================' ;
+			# 报告磁盘空间(构建后)
 			echo 'Disk free report for $builddir/$package:' ;
 			df $builddir | $INDENT ;
+			# 打印结束时间 
 			printf 'Remote date:			' ;
 			date $DATEFLAGS ;
 			cd ;
+			# BUILDBEND作用：额外的日志记录等
 			test -f $BUILDEND && . $BUILDEND || test -f $BUILDEND && source $BUILDEND || true ;
 			echo '=========================================================' ;
 		" < /dev/null > "$LOGDIR/$logfile" 2>1& &						
@@ -145,9 +181,12 @@ find_file() {
 	fi
 }
 
-find_packages() {
+# 寻找归档文件(package archive file)
+find_package() {
 	# Grammer
 	# 	find_package package-x.y.z
+	
+	# 截断版本编号 
 	base=`echo "$1" | sed -e 's/[-_][.]*[0-9].*$//'`
 	PAR=
 	PARFILE=
@@ -163,9 +202,9 @@ find_packages() {
 			find_file $srcdir/$subdir/$1.tar.Z   "tar xfz"  && return
 			find_file $srcdir/$subdir/$1.tar     "tar xf"   && return
 			find_file $srcdir/$subdir/$1.tar.bz2 "tar xfj"  && return
-			find_file $srcdir/$subdir/$1.tar.tgz "tar xfz"  && return
-			find_file $srcdir/$subdir/$1.tar.zip "unzip -q" && return
-			find_file $srcdir/$subdir/$1.tar.jar "jar xf"   && return
+			find_file $srcdir/$subdir/$1.tgz 	 "tar xfz"  && return
+			find_file $srcdir/$subdir/$1.zip 	 "unzip -q" && return
+			find_file $srcdir/$subdir/$1.jar 	 "jar xf"   && return
 		done
 	done
 }
@@ -227,31 +266,42 @@ VERSION=1.0
 # 时间戳
 DATEFLAGS="+%Y.%m.%d.%H.%M.%S"
 
+# 初始化文件所在目录
+BUILDHOME=$HOME/.build
+# 构建开始时在远程主机的登录shell内执行 提供进一步的定制和日志文件的报告
+BUILDBEGIN=./.build/begin
+# 构建结束时在远程主机登录shell内执行
+BUILDEND=./.build/end
+# default init files
+defaultdirectories=$BUILDHOME/directories
+defaultuserhosts=$BUILDHOME/userhosts
+
 # 默认使用ssh scp连接远程主机
 # 对于旧式不安全的远程shell站点 可以更换为rsh rcp
 SSH=ssh
 SCP=scp
 # 关闭ssh建立加密通道供X Window System流量使用的功能
+# ssh -x
 SSHFLAGS=${SSHFLAGS--x}
 
+# 构建主机
+userhosts=
+# 列出额外主机的文件
+ALTUSERHOSTS=
 	
-# 程序或mark target构建用	
-ALLTARGETS=
-
-# 日志文件的另一个位置
+# 日志文件的位置 会被--logdirectory参数指定的值替换
 altlogdir=
+# 日志目录 即最终的altlogdir值
+LOGDIR=
+
 # 来源文件的另一个位置(优先级最高的来源文件)
 altsrcdirs=
 
-# 列出额外主机的文件
-ALTUSERHOSTS=
 
-# 构建开始时在远程主机的登录shell内执行 提供进一步的定制和日志文件的报告
-BUILDBEGIN=./.build/begin
-# 构建结束时在远程主机登录shell内执行
-BUILDEND=./.build/end
-# 初始化文件所在目录
-BUILDHOME=$HOME/.build
+# 程序或mark target构建用	
+ALLTARGETS=
+
+
 
 # 执行包测试的make target名称
 CHECKTARGETS=check
@@ -270,31 +320,18 @@ EXTRAENVIRONMENT=
 INDENT="awk '{ print \"\t\t\t\" \$0 }'"
 # 将换行字符置换为空格(\040:空格的8进制的ascii值)
 JOINLINES="tr '\n' '\040'"
-
-
-# 本地日志目录
-LOGDIR=
-
-
-
-
 # 去掉注释
 STRIPCOMMENTS='sed -e s/#.*$//'
-# 在命令行上指定额外的构建主机
-userhosts=
 
 # 退出码
 EXITCODE=0
-
-# default init files
-defaultdirectories=$BUILDHOME/directories
-defaultuserhosts=$BUILDHOME/userhosts
 
 # 寻找包分发的位置列表 如果用户未提供个人化列表 则使用默认列表
 # 去除初始化文件的注释 如果内容为空 则使用默认列表
 SRCDIRS="`$STRIPCOMMENTS $defaultdirectories 2> /dev/null`"
 test -z "$SRCDIRS" && \
 	SRCDIRS="
+		.
 		/usr/local/src
 		/usr/local/gnu/src
 		$HOME/src
@@ -379,6 +416,7 @@ test -x $MAIL || error "Cannot find mail client"
 # 命令行来源目录优先于默认值
 SRCDIRS="$altsrcdirs $SRCDIRS"
 
+# 主机优先级：命令行--on参数指定 > $ALTUSERHOSTS额外的 > $defaultuserhosts(默认指定主机文件只有在命令行以及额外配置均未指定的时候才使用)
 if test -n "$userhosts"
 then
 	test -n "$ALTUSERHOSTS" && userhosts="$userhosts `$STRIPCOMMENTS $ALTUSERHOSTS 2> /dev/null`"
@@ -387,24 +425,32 @@ else
 	userhosts="`$STRIPCOMMENTS $ALTUSERHOSTS 2> /dev/null`"
 fi
 
-# 检查是否要执行某些操作
+# 检查必须设置userhosts
 # test -z 字符串长度为0时为真
 #      -n 字符串长度不为0时为真
+# 	   -a 文件存在则为真 同-e
+#      -d 文件存在且是一个目录则为真
+#      -w 文件存在且可写则为真
+#      -r 文件存在且可读则为真
+#      -x 文件存在且可执行则为真
+#      -o 或者 相当于|| 具有短路功能
 test -z "$userhosts" && usage_and_exit 1
 
 # 遍历packages列表
 for p in "$@"
 do
+	# 寻找包存档文件
 	find_package "$p"
 	
+	# 如果PARFILE为空则将警告信息发送到str 继续处理下一个包
 	if test -z "$PARFILE"
 	then
 		warning "Cannot find package file $p"
 		continue
 	fi
 
-	LOGGER="$altlogdir"
-	if test -z "$LOGDIR" -o ! -d "$LOGDIR" -O ! -w "$LOGDIR"
+	LOGDIR="$altlogdir"
+	if test -z "$LOGDIR" -o ! -d "$LOGDIR" -o ! -w "$LOGDIR"
 	then 
 		for LOGDIR in "`dirname $PARFILE`/logs/$p" $BUILDHOME/logs/$p /usr/tmp /var/tmp /tmp
 		do 
@@ -415,7 +461,7 @@ do
 	
 	msg="Check build logs for $p in `hostname`:$LOGDIR"
 	echo msg
-	# 发送邮件
+	# 发送邮件 报告日志文件的位置
 	# mail -s "subject" receiver < file
 	# echo {content} | mail -s "subject" receiver 
 	#    -a {attachfile}
@@ -428,5 +474,8 @@ do
 done	
 
 test $EXITCODE -gt 125 && EXITCODE=125
+
+# 等待所有后台进程都完成时再返回
+#wait
 
 exit $EXITCODE 
