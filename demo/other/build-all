@@ -153,6 +153,7 @@ find_packages() {
 	PARFILE=
 	for srcdir in $SRCDIRS
 	do
+		# 如果目录是. 则替换为绝对路径
 		test "$srcdir" = "." && srcdir="`pwd`"
 		
 		for subdir in "$base" ""
@@ -189,18 +190,19 @@ set_userhosts() {
 usage() {
 	cat << EOF
 Usage:
-		$PROGRAM [--?]
-						[ --all "..." ]
-						[ --cd "..." ]
-						[ --check "..." ]
-						[ --configure "..." ]
-						[ --environment "..." ]
-						[ --help ]
-						[ --logdirectory dir ]
-						[ --on "[user@]host[:dir][,envfile] ..." ]
-						[ --source "dir..." ]
-						[ --userhosts "file(s)" ]
-						[ --version ]
+		$PROGRAM 
+			[--?]
+			[ --all "..." ]
+			[ --cd "..." ]
+			[ --check "..." ]
+			[ --configure "..." ]
+			[ --environment "..." ]
+			[ --help ]
+			[ --logdirectory dir ]
+			[ --on "[user@]host[:dir][,envfile] ..." ]
+			[ --source "dir..." ]
+			[ --userhosts "file(s)" ]
+			[ --version ]
 EOF
 }
 
@@ -235,10 +237,12 @@ SSHFLAGS=${SSHFLAGS--x}
 	
 # 程序或mark target构建用	
 ALLTARGETS=
+
 # 日志文件的另一个位置
 altlogdir=
-# 来源文件的另一个位置
+# 来源文件的另一个位置(优先级最高的来源文件)
 altsrcdirs=
+
 # 列出额外主机的文件
 ALTUSERHOSTS=
 
@@ -371,6 +375,7 @@ do
 done
 test -x $MAIL || error "Cannot find mail client"
 
+# 包分发的位置列表加载顺序：$altsrcdirs(额外的) > 命令行--source参数指定 > 程序默认列表$SRCDIRS($defaultdirectories不存在时才加载程序默认值)
 # 命令行来源目录优先于默认值
 SRCDIRS="$altsrcdirs $SRCDIRS"
 
@@ -383,8 +388,11 @@ else
 fi
 
 # 检查是否要执行某些操作
+# test -z 字符串长度为0时为真
+#      -n 字符串长度不为0时为真
 test -z "$userhosts" && usage_and_exit 1
 
+# 遍历packages列表
 for p in "$@"
 do
 	find_package "$p"
@@ -407,6 +415,10 @@ do
 	
 	msg="Check build logs for $p in `hostname`:$LOGDIR"
 	echo msg
+	# 发送邮件
+	# mail -s "subject" receiver < file
+	# echo {content} | mail -s "subject" receiver 
+	#    -a {attachfile}
 	echo "$msg" | $MAIL -s "$msg" $USER 2> /dev/null
 	
 	for u in $userhosts
