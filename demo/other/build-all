@@ -2,19 +2,19 @@
 # build one or several packages on one or several hosts, in parallel process style.
 
 # Grammer:
-#       build-all [ --? ] ÏÔÊ¾°ïÖú
+#       build-all [ --? ] æ˜¾ç¤ºå¸®åŠ©
 #                 [ --all "..." ]
 #                 [ --cd "..." ]
 #                 [ --check "..." ]
 #                 [ --configure "..." ]
 #                 [ --environment "..." ]
-#                 [ --help ] ÏÔÊ¾°ïÖú
-#                 [ --logdirectory dir ] Ö¸¶¨ÈÕÖ¾Ä¿Â¼
-#                 [ --on "[user@]host[:dir][,envfile] ..." ] Ö¸¶¨Ö÷»ú
-#                 [ --source "dir..." ] # Ö¸¶¨°üµÄÎ»ÖÃ
-#                 [ --userhosts "file(s)" ] Ö¸¶¨Ö÷»ú(ÎÄ¼şÖĞ»ñÈ¡)
-#                 [ --version ] ÏÔÊ¾°æ±¾ĞÅÏ¢
-#                 package(s)
+#                 [ --help ] æ˜¾ç¤ºå¸®åŠ©
+#                 [ --logdirectory dir ] æŒ‡å®šæ—¥å¿—ç›®å½•
+#                 [ --on "[user@]host[:dir][,envfile] ..." ] æŒ‡å®šä¸»æœº
+#                 [ --source "dir..." ] æŒ‡å®šåŒ…çš„ä½ç½®
+#                 [ --userhosts "file(s)" ] æŒ‡å®šä¸»æœº(æ–‡ä»¶ä¸­è·å–)
+#                 [ --version ] æ˜¾ç¤ºç‰ˆæœ¬ä¿¡æ¯
+#                 package(s) 
 
 # Available init files:
 #       $HOME/.build/directories        list of source directories
@@ -37,32 +37,32 @@ build_one() {
 	# eg
 	#   build_one bluecat@github.co:/local/build,$HOME/.build/c99
 	
-	# Õ¹¿ªuserhost²ÎÊıÀï¿ÉÄÜ´æÔÚµÄ»·¾³±äÁ¿
+	# å±•å¼€userhostå‚æ•°é‡Œå¯èƒ½å­˜åœ¨çš„ç¯å¢ƒå˜é‡
 	arg="`eval echo $1`"
 	
-	# É¾³ıÃ°ºÅ¼°Ã°ºÅºóµÄÈÎºÎ¶«Î÷
+	# åˆ é™¤å†’å·åŠå†’å·åçš„ä»»ä½•ä¸œè¥¿
 	userhost="`echo $arg | sed -e 's/:.*$//'`"
 	
-	# »ñÈ¡ÓÃ»§Ãû³Æ Èç¹ûÎª¿Õ ÔòÊ¹ÓÃ$USER (µ±µÇÂ¼µÄÔ¶³ÌÖ÷»úµÄuserÓë±¾µØµÇÂ¼µÄuserÒ»ÖÂÊ±¿ÉÒÔÊ¡ÂÔuser)
+	# è·å–ç”¨æˆ·åç§° å¦‚æœä¸ºç©º åˆ™ä½¿ç”¨$USER (å½“ç™»å½•çš„è¿œç¨‹ä¸»æœºçš„userä¸æœ¬åœ°ç™»å½•çš„userä¸€è‡´æ—¶å¯ä»¥çœç•¥user)
 	user="`echo $userhost | sed -e s'/@.*$//'`"
 	test "$user" = "$userhost" && user=$USER
 	
-	# »ñÈ¡Ö÷»úĞÅÏ¢
+	# è·å–ä¸»æœºä¿¡æ¯
 	host="`echo $userhost | sed -e s'/^[^@]*@//'`"
 	
-	# »ñÈ¡»·¾³±äÁ¿ÎÄ¼şÃû³Æ
+	# è·å–ç¯å¢ƒå˜é‡æ–‡ä»¶åç§°
 	envfile="`echo $userhost | sed -e s'/^[^,]*,//'`"
 	test "$envfile" = "$arg" && envfile=/dev/null
 	
-	# »ñÈ¡ÔÚÔ¶³ÌÖ÷»úÉÏµÄ¹¹½¨Ä¿Â¼ Èç¹ûÎ´Ö¸¶¨ Ôò¹¹½¨µ½Ô¶³ÌÖ÷»úµÄ/tmpÏÂ
+	# è·å–åœ¨è¿œç¨‹ä¸»æœºä¸Šçš„æ„å»ºç›®å½• å¦‚æœæœªæŒ‡å®š åˆ™æ„å»ºåˆ°è¿œç¨‹ä¸»æœºçš„/tmpä¸‹
 	builddir="`echo $arg | sed -e s'/^.*://' -e 's/,.*//'`"
 	test "$builddir" = "$arg" && builddir=/tmp
 	
-	# ÎÄ¼şÃû
+	# æ–‡ä»¶å
 	parbase=`basename $PARFILE`
 	
-	# °üÃû³Æ
-	## Èç¹ûÕâĞ©Ä£Ê½±»¸ü»»¹ı Ôò¸üĞÂfind_package()
+	# åŒ…åç§°
+	## å¦‚æœè¿™äº›æ¨¡å¼è¢«æ›´æ¢è¿‡ åˆ™æ›´æ–°find_package()
 	package="`echo $parbase | \
 					sed -e 's/[.]jar$//' \
 						-e 's/[.]tar[.]bz2$//' \
@@ -72,11 +72,11 @@ build_one() {
 						-e 's/[.]tgz$//' \
 						-e 's/[.]zip$//'`"
 						
-	# Èç¹ûÎÒÃÇÔÚÔ¶³ÌÖ÷»úÉÏ¿´²»µ½°üÎÄ¼ş Ôò¸´ÖÆ¹ıÈ¥
+	# å¦‚æœæˆ‘ä»¬åœ¨è¿œç¨‹ä¸»æœºä¸Šçœ‹ä¸åˆ°åŒ…æ–‡ä»¶ åˆ™å¤åˆ¶è¿‡å»
 	echo $SSH $SSHFLAGS $userhosts "test -f $PARFILE"
 	if $SSH $SSHFLAGS $userhosts "test -f $PARFILE"
 	then 
-		# parbaselocalÓÃÀ´Çø·Ö¹éµµÎÄ¼şµÄÁÙÊ±°æ±¾ÓëÏÈÇ°ÒÑ´æÔÚ°æ±¾µÄÇø±ğ
+		# parbaselocalç”¨æ¥åŒºåˆ†å½’æ¡£æ–‡ä»¶çš„ä¸´æ—¶ç‰ˆæœ¬ä¸å…ˆå‰å·²å­˜åœ¨ç‰ˆæœ¬çš„åŒºåˆ«
 		parbaselocal=$PARFILE
 	else
 		parbaselocal=$parbase
@@ -84,20 +84,20 @@ build_one() {
 		$SCP $PARFILE $usrhosts:$builddir
 	fi
 	
-	# ÔÚÔ¶³ÌÖ÷»úÉÏ½â¿ª´æµµÎÄ¼ş¡¢¹¹½¨£¬¼°ÒÔºóÌ¨Ö´ĞĞ·½Ê½¼ì²éËü
-	# unzip²»Ö§³Ö¹ÜµÀ
-	sleep 1 #ÎªÁË±£Ö¤Î¨Ò»µÄÈÕÖ¾ÎÄ¼şÃû
+	# åœ¨è¿œç¨‹ä¸»æœºä¸Šè§£å¼€å­˜æ¡£æ–‡ä»¶ã€æ„å»ºï¼ŒåŠä»¥åå°æ‰§è¡Œæ–¹å¼æ£€æŸ¥å®ƒ
+	# unzipä¸æ”¯æŒç®¡é“
+	sleep 1 #ä¸ºäº†ä¿è¯å”¯ä¸€çš„æ—¥å¿—æ–‡ä»¶å
 	now="`date $DATEFLAGS`" 
 	logfile="$package.$host.$now.log"
 	
-	# nice [OPTION] [COMMAND [ARG]...] ¸Ä±ä½ø³ÌÓÅÏÈ¼¶(Îª¼´½«ÔËĞĞµÄ½ø³ÌÉèÖÃÓÅÏÈ¼¶ ĞŞ¸ÄÕıÔÚÔËĞĞµÄ½ø³ÌµÄÓÅÏÈ¼¶Ê¹ÓÃrenice)
-	# nice Ã»ÓĞÑ¡ÏîºÍÃüÁîÊ± Êä³ö0 ±íÊ¾½ø³ÌÈ±Ê¡µÄnicenessÖµÊÇ0
-	# nice -n Ö¸¶¨nicenessÖµ ·¶Î§-20µ½19 Ä¬ÈÏÎª10 ÖµÔ½Ğ¡ÓÅÏÈ¼¶Ô½¸ß
+	# nice [OPTION] [COMMAND [ARG]...] æ”¹å˜è¿›ç¨‹ä¼˜å…ˆçº§(ä¸ºå³å°†è¿è¡Œçš„è¿›ç¨‹è®¾ç½®ä¼˜å…ˆçº§ ä¿®æ”¹æ­£åœ¨è¿è¡Œçš„è¿›ç¨‹çš„ä¼˜å…ˆçº§ä½¿ç”¨renice)
+	# nice æ²¡æœ‰é€‰é¡¹å’Œå‘½ä»¤æ—¶ è¾“å‡º0 è¡¨ç¤ºè¿›ç¨‹ç¼ºçœçš„nicenesså€¼æ˜¯0
+	# nice -n æŒ‡å®šnicenesså€¼ èŒƒå›´-20åˆ°19 é»˜è®¤ä¸º10 å€¼è¶Šå°ä¼˜å…ˆçº§è¶Šé«˜
 	nice $SSH $SSHFLAGS $userhost "
 			echo '=========================================================' ;
 			
-			# BUILDBEGIN×÷ÓÃ£ºµÇÂ¼¶¨ÖÆ
-			# Bourne-Shell¼Ò×åÊ¹ÓÃµãºÅÃüÁîÖ´ĞĞ½Å±¾£¬ C-Shell¼Ò×åÊ¹ÓÃsourceÃüÁî£¬bashºÍzshÁ½ÖÖÃüÁî¶¼Ö§³Ö
+			# BUILDBEGINä½œç”¨ï¼šç™»å½•å®šåˆ¶
+			# Bourne-Shellå®¶æ—ä½¿ç”¨ç‚¹å·å‘½ä»¤æ‰§è¡Œè„šæœ¬ï¼Œ C-Shellå®¶æ—ä½¿ç”¨sourceå‘½ä»¤ï¼Œbashå’Œzshä¸¤ç§å‘½ä»¤éƒ½æ”¯æŒ
 			test -f $BUILDBEGIN && . $BUILDBEGIN || test -f $BUILDBEGIN && source $BUILDBEGIN || true ;
 			echo 'Package:				$package' ;
 			echo 'Archive:				$PARFILE' ;
@@ -109,13 +109,13 @@ build_one() {
 			echo 'Remote user:			$user' ;
 			echo 'Remote host:			$host' ;
 			echo 'Remote directory:		$builddir' ;
-			# ´òÓ¡¿ªÊ¼Ê±¼ä ÓÃÓÚ·ÖÎöÔ¶³ÌÖ÷»úÉÏµÄ¹¹½¨Ê±¼ä
+			# æ‰“å°å¼€å§‹æ—¶é—´ ç”¨äºåˆ†æè¿œç¨‹ä¸»æœºä¸Šçš„æ„å»ºæ—¶é—´
 			printf 'Remote date:			' ;
 			date $DATEFLAGS ;
-			# ´òÓ¡Ô¶³ÌÖ÷»ú²Ù×÷ÏµÍ³ĞÅÏ¢
+			# æ‰“å°è¿œç¨‹ä¸»æœºæ“ä½œç³»ç»Ÿä¿¡æ¯
 			printf 'Remote uname:			' ;
 			uname -a || true ;
-			# ´òÓ¡GNU±àÒëÆ÷µÄ°æ±¾ĞÅÏ¢
+			# æ‰“å°GNUç¼–è¯‘å™¨çš„ç‰ˆæœ¬ä¿¡æ¯
 			printf 'Remote gcc version:		' ;
 			gcc --version | head -n 1 || echo ;
 			printf 'Remote g++ version:		' ;
@@ -124,40 +124,40 @@ build_one() {
 			echo 'Extra environment:	$EXTRAENVIRONMENT' ;
 			echo 'Configure directory:	$CONFIGUREDIR' ;
 			echo 'Configure flags:		$CONFIGUREFLAGS' ;
-			echo 'Make all targets£»	$ALLTARGETS' ;
+			echo 'Make all targetsï¼›	$ALLTARGETS' ;
 			echo 'Make check targets:	$CHECKTARGETS' ;
-			# ±¨¸æ´ÅÅÌ¿Õ¼ä(¹¹½¨Ç°)
+			# æŠ¥å‘Šç£ç›˜ç©ºé—´(æ„å»ºå‰)
 			echo 'Disk free report for $builddir/$package:' ;
 			df $builddir | $INDENT ;
-			# configureºÍmake¿ÉÄÜ±»»·¾³±äÁ¿Ó°Ïì ĞèÒªÅÅĞòÈÕÖ¾ÎÄ¼ş±êÍ·
+			# configureå’Œmakeå¯èƒ½è¢«ç¯å¢ƒå˜é‡å½±å“ éœ€è¦æ’åºæ—¥å¿—æ–‡ä»¶æ ‡å¤´
 			echo 'Environment:' ;
-			# env LC_ALL=C£ºÈ¥³ıËùÓĞ±¾µØ»¯ÅäÖÃ,È·±£½Å±¾¿ÉÕı³£ÔËĞĞÓëËùÓĞshellÏÂ
+			# env LC_ALL=Cï¼šå»é™¤æ‰€æœ‰æœ¬åœ°åŒ–é…ç½®,ç¡®ä¿è„šæœ¬å¯æ­£å¸¸è¿è¡Œä¸æ‰€æœ‰shellä¸‹
 			env | env LC_ALL=C sort | $INDENT ;
 			echo '=========================================================' ;
-			# ÔÚÔ¶³ÌÏµÍ³ÉÏÉèÖÃÈ¨ÏŞÑÚÂë
+			# åœ¨è¿œç¨‹ç³»ç»Ÿä¸Šè®¾ç½®æƒé™æ©ç 
 			umask $UMASK ;
-			# ÇĞ»»¶¼¹¹½¨Ä¿Â¼
+			# åˆ‡æ¢éƒ½æ„å»ºç›®å½•
 			cd $builddir || exit 1;
-			# É¾³ıËùÓĞ¾ÉµÄ¹éµµÎÄ¼ş
-			# Ê¹ÓÃrmµÄ¾ø¶ÔÂ·¾¶ÊÇÒòÎªÔ¶³ÌÖ÷»úÉÏµÄ¸ÃÃüÁî¿ÉÄÜ±»ÉèÖÃÁË¾ßÓĞ-i½»»¥Ñ¡ÏîµÄ±ğÃû
+			# åˆ é™¤æ‰€æœ‰æ—§çš„å½’æ¡£æ–‡ä»¶
+			# ä½¿ç”¨rmçš„ç»å¯¹è·¯å¾„æ˜¯å› ä¸ºè¿œç¨‹ä¸»æœºä¸Šçš„è¯¥å‘½ä»¤å¯èƒ½è¢«è®¾ç½®äº†å…·æœ‰-iäº¤äº’é€‰é¡¹çš„åˆ«å
 			/bin/rm -rf $builddir/$package ;
-			# ½âÑ¹
+			# è§£å‹
 			$PAR $parbaselocal ;
 			test "$parbase" = "$parbaselocal" && /bin/rm -rf $parbase ;
 			cd $package/$CONFIGUREDIR || exit 1 ;
-			# Ç°ÖÃµÄtimeÃüÁî¿ÉÒÔ±¨¸æÃüÁîµÄÖ´ĞĞÊ±¼ä
+			# å‰ç½®çš„timeå‘½ä»¤å¯ä»¥æŠ¥å‘Šå‘½ä»¤çš„æ‰§è¡Œæ—¶é—´
 			test -f configure && chmod a+x configure && env `$STRIPCOMMENTS $envfile | $JOINLINES` \
 				$EXTRAENVIRONMENT nice time ./configure $CONFIGUREFLAGS ;
 			nice time make $ALLTARGETS && nice time make $CHECKTARGETS ;			
 			echo '=========================================================' ;
-			# ±¨¸æ´ÅÅÌ¿Õ¼ä(¹¹½¨ºó)
+			# æŠ¥å‘Šç£ç›˜ç©ºé—´(æ„å»ºå)
 			echo 'Disk free report for $builddir/$package:' ;
 			df $builddir | $INDENT ;
-			# ´òÓ¡½áÊøÊ±¼ä 
+			# æ‰“å°ç»“æŸæ—¶é—´ 
 			printf 'Remote date:			' ;
 			date $DATEFLAGS ;
 			cd ;
-			# BUILDBEND×÷ÓÃ£º¶îÍâµÄÈÕÖ¾¼ÇÂ¼µÈ
+			# BUILDBENDä½œç”¨ï¼šé¢å¤–çš„æ—¥å¿—è®°å½•ç­‰
 			test -f $BUILDEND && . $BUILDEND || test -f $BUILDEND && source $BUILDEND || true ;
 			echo '=========================================================' ;
 		" < /dev/null > "$LOGDIR/$logfile" 2>1& &						
@@ -181,23 +181,23 @@ find_file() {
 	fi
 }
 
-# Ñ°ÕÒ¹éµµÎÄ¼ş(package archive file)
+# å¯»æ‰¾å½’æ¡£æ–‡ä»¶(package archive file)
 find_package() {
 	# Grammer
 	# 	find_package package-x.y.z
 	
-	# ½Ø¶Ï°æ±¾±àºÅ 
+	# æˆªæ–­ç‰ˆæœ¬ç¼–å· 
 	base=`echo "$1" | sed -e 's/[-_][.]*[0-9].*$//'`
 	PAR=
 	PARFILE=
 	for srcdir in $SRCDIRS
 	do
-		# Èç¹ûÄ¿Â¼ÊÇ. ÔòÌæ»»Îª¾ø¶ÔÂ·¾¶
+		# å¦‚æœç›®å½•æ˜¯. åˆ™æ›¿æ¢ä¸ºç»å¯¹è·¯å¾„
 		test "$srcdir" = "." && srcdir="`pwd`"
 		
 		for subdir in "$base" ""
 		do
-			# Èç¹û´ËÁĞ±í¸Ä±ä Ôò¸üĞÂbuild_one()ÄÚµÄ°üÉèÖÃ
+			# å¦‚æœæ­¤åˆ—è¡¨æ”¹å˜ åˆ™æ›´æ–°build_one()å†…çš„åŒ…è®¾ç½®
 			find_file $srcdir/$subdir/$1.tar.gz  "tar xfz"  && return
 			find_file $srcdir/$subdir/$1.tar.Z   "tar xfz"  && return
 			find_file $srcdir/$subdir/$1.tar     "tar xf"   && return
@@ -259,75 +259,75 @@ warning() {
 	EXITCODE=`expr $EXITCODE + 1`
 }
     
-# ³ÌĞòÃû³Æ
+# ç¨‹åºåç§°
 PROGRAM=`basename $0`
-# °æ±¾±àºÅ
+# ç‰ˆæœ¬ç¼–å·
 VERSION=1.0
-# Ê±¼ä´Á
+# æ—¶é—´æˆ³
 DATEFLAGS="+%Y.%m.%d.%H.%M.%S"
 
-# ³õÊ¼»¯ÎÄ¼şËùÔÚÄ¿Â¼
+# åˆå§‹åŒ–æ–‡ä»¶æ‰€åœ¨ç›®å½•
 BUILDHOME=$HOME/.build
-# ¹¹½¨¿ªÊ¼Ê±ÔÚÔ¶³ÌÖ÷»úµÄµÇÂ¼shellÄÚÖ´ĞĞ Ìá¹©½øÒ»²½µÄ¶¨ÖÆºÍÈÕÖ¾ÎÄ¼şµÄ±¨¸æ
+# æ„å»ºå¼€å§‹æ—¶åœ¨è¿œç¨‹ä¸»æœºçš„ç™»å½•shellå†…æ‰§è¡Œ æä¾›è¿›ä¸€æ­¥çš„å®šåˆ¶å’Œæ—¥å¿—æ–‡ä»¶çš„æŠ¥å‘Š
 BUILDBEGIN=./.build/begin
-# ¹¹½¨½áÊøÊ±ÔÚÔ¶³ÌÖ÷»úµÇÂ¼shellÄÚÖ´ĞĞ
+# æ„å»ºç»“æŸæ—¶åœ¨è¿œç¨‹ä¸»æœºç™»å½•shellå†…æ‰§è¡Œ
 BUILDEND=./.build/end
 # default init files
 defaultdirectories=$BUILDHOME/directories
 defaultuserhosts=$BUILDHOME/userhosts
 
-# Ä¬ÈÏÊ¹ÓÃssh scpÁ¬½ÓÔ¶³ÌÖ÷»ú
-# ¶ÔÓÚ¾ÉÊ½²»°²È«µÄÔ¶³ÌshellÕ¾µã ¿ÉÒÔ¸ü»»Îªrsh rcp
+# é»˜è®¤ä½¿ç”¨ssh scpè¿æ¥è¿œç¨‹ä¸»æœº
+# å¯¹äºæ—§å¼ä¸å®‰å…¨çš„è¿œç¨‹shellç«™ç‚¹ å¯ä»¥æ›´æ¢ä¸ºrsh rcp
 SSH=ssh
 SCP=scp
-# ¹Ø±Õssh½¨Á¢¼ÓÃÜÍ¨µÀ¹©X Window SystemÁ÷Á¿Ê¹ÓÃµÄ¹¦ÄÜ
+# å…³é—­sshå»ºç«‹åŠ å¯†é€šé“ä¾›X Window Systemæµé‡ä½¿ç”¨çš„åŠŸèƒ½
 # ssh -x
 SSHFLAGS=${SSHFLAGS--x}
 
-# ¹¹½¨Ö÷»ú
+# æ„å»ºä¸»æœº
 userhosts=
-# ÁĞ³ö¶îÍâÖ÷»úµÄÎÄ¼ş
+# åˆ—å‡ºé¢å¤–ä¸»æœºçš„æ–‡ä»¶
 ALTUSERHOSTS=
 	
-# ÈÕÖ¾ÎÄ¼şµÄÎ»ÖÃ »á±»--logdirectory²ÎÊıÖ¸¶¨µÄÖµÌæ»»
+# æ—¥å¿—æ–‡ä»¶çš„ä½ç½® ä¼šè¢«--logdirectoryå‚æ•°æŒ‡å®šçš„å€¼æ›¿æ¢
 altlogdir=
-# ÈÕÖ¾Ä¿Â¼ ¼´×îÖÕµÄaltlogdirÖµ
+# æ—¥å¿—ç›®å½• å³æœ€ç»ˆçš„altlogdirå€¼
 LOGDIR=
 
-# À´Ô´ÎÄ¼şµÄÁíÒ»¸öÎ»ÖÃ(ÓÅÏÈ¼¶×î¸ßµÄÀ´Ô´ÎÄ¼ş)
+# æ¥æºæ–‡ä»¶çš„å¦ä¸€ä¸ªä½ç½®(ä¼˜å…ˆçº§æœ€é«˜çš„æ¥æºæ–‡ä»¶)
 altsrcdirs=
 
 
-# ³ÌĞò»òmark target¹¹½¨ÓÃ	
+# ç¨‹åºæˆ–mark targetæ„å»ºç”¨	
 ALLTARGETS=
 
 
 
-# Ö´ĞĞ°ü²âÊÔµÄmake targetÃû³Æ
+# æ‰§è¡ŒåŒ…æµ‹è¯•çš„make targetåç§°
 CHECKTARGETS=check
-# ÅäÖÃ½Å±¾µÄ×ÓÄ¿Â¼
+# é…ç½®è„šæœ¬çš„å­ç›®å½•
 CONFIGUREDIR=.
-# ÅäÖÃ³ÌĞòµÄ±êÊ¶
+# é…ç½®ç¨‹åºçš„æ ‡è¯†
 CONFIGUREFLAGS=
 
 
-# Ä¬ÈÏµÄ¶îÍâ»·¾³±äÁ¿
+# é»˜è®¤çš„é¢å¤–ç¯å¢ƒå˜é‡
 EXTRAENVIRONMENT=
 
-# ½«Êı¾İÁ÷¹ıÂË³ÉÄÚËõ×´(¸ñÊ½»¯Êä³ö) ´Ë´¦½«Ã¿ĞĞËõ½ø3¸öÖÆ±í·û
+# å°†æ•°æ®æµè¿‡æ»¤æˆå†…ç¼©çŠ¶(æ ¼å¼åŒ–è¾“å‡º) æ­¤å¤„å°†æ¯è¡Œç¼©è¿›3ä¸ªåˆ¶è¡¨ç¬¦
 # awk
-# 	$0±íÊ¾Õû¸ö¼ÇÂ¼
+# 	$0è¡¨ç¤ºæ•´ä¸ªè®°å½•
 INDENT="awk '{ print \"\t\t\t\" \$0 }'"
-# ½«»»ĞĞ×Ö·ûÖÃ»»Îª¿Õ¸ñ(\040:¿Õ¸ñµÄ8½øÖÆµÄasciiÖµ)
+# å°†æ¢è¡Œå­—ç¬¦ç½®æ¢ä¸ºç©ºæ ¼(\040:ç©ºæ ¼çš„8è¿›åˆ¶çš„asciiå€¼)
 JOINLINES="tr '\n' '\040'"
-# È¥µô×¢ÊÍ
+# å»æ‰æ³¨é‡Š
 STRIPCOMMENTS='sed -e s/#.*$//'
 
-# ÍË³öÂë
+# é€€å‡ºç 
 EXITCODE=0
 
-# Ñ°ÕÒ°ü·Ö·¢µÄÎ»ÖÃÁĞ±í Èç¹ûÓÃ»§Î´Ìá¹©¸öÈË»¯ÁĞ±í ÔòÊ¹ÓÃÄ¬ÈÏÁĞ±í
-# È¥³ı³õÊ¼»¯ÎÄ¼şµÄ×¢ÊÍ Èç¹ûÄÚÈİÎª¿Õ ÔòÊ¹ÓÃÄ¬ÈÏÁĞ±í
+# å¯»æ‰¾åŒ…åˆ†å‘çš„ä½ç½®åˆ—è¡¨ å¦‚æœç”¨æˆ·æœªæä¾›ä¸ªäººåŒ–åˆ—è¡¨ åˆ™ä½¿ç”¨é»˜è®¤åˆ—è¡¨
+# å»é™¤åˆå§‹åŒ–æ–‡ä»¶çš„æ³¨é‡Š å¦‚æœå†…å®¹ä¸ºç©º åˆ™ä½¿ç”¨é»˜è®¤åˆ—è¡¨
 SRCDIRS="`$STRIPCOMMENTS $defaultdirectories 2> /dev/null`"
 test -z "$SRCDIRS" && \
 	SRCDIRS="
@@ -341,7 +341,7 @@ test -z "$SRCDIRS" && \
 		/var/tmp
 	"
 
-# $#: ²ÎÊı¸öÊı
+# $#: å‚æ•°ä¸ªæ•°
 while test $# -gt 0
 do
 	case $1 in
@@ -405,18 +405,18 @@ do
 	shift
 done
 
-# Ñ°ÕÒÊÊµ±µÄÓÊ¼ş¿Í»§¶Ë³ÌĞò
+# å¯»æ‰¾é€‚å½“çš„é‚®ä»¶å®¢æˆ·ç«¯ç¨‹åº
 for MAIL in /bin/mailx /usr/bin/mailx /usr/sbin/mailx /usr/ucb/mailx /bin/mail /usr/bin/mail
 do	
 	test -x $MAIL && break
 done
 test -x $MAIL || error "Cannot find mail client"
 
-# °ü·Ö·¢µÄÎ»ÖÃÁĞ±í¼ÓÔØË³Ğò£º$altsrcdirs(¶îÍâµÄ) > ÃüÁîĞĞ--source²ÎÊıÖ¸¶¨ > ³ÌĞòÄ¬ÈÏÁĞ±í$SRCDIRS($defaultdirectories²»´æÔÚÊ±²Å¼ÓÔØ³ÌĞòÄ¬ÈÏÖµ)
-# ÃüÁîĞĞÀ´Ô´Ä¿Â¼ÓÅÏÈÓÚÄ¬ÈÏÖµ
+# åŒ…åˆ†å‘çš„ä½ç½®åˆ—è¡¨åŠ è½½é¡ºåºï¼š$altsrcdirs(é¢å¤–çš„) > å‘½ä»¤è¡Œ--sourceå‚æ•°æŒ‡å®š > ç¨‹åºé»˜è®¤åˆ—è¡¨$SRCDIRS($defaultdirectoriesä¸å­˜åœ¨æ—¶æ‰åŠ è½½ç¨‹åºé»˜è®¤å€¼)
+# å‘½ä»¤è¡Œæ¥æºç›®å½•ä¼˜å…ˆäºé»˜è®¤å€¼
 SRCDIRS="$altsrcdirs $SRCDIRS"
 
-# Ö÷»úÓÅÏÈ¼¶£ºÃüÁîĞĞ--on²ÎÊıÖ¸¶¨ > $ALTUSERHOSTS¶îÍâµÄ > $defaultuserhosts(Ä¬ÈÏÖ¸¶¨Ö÷»úÎÄ¼şÖ»ÓĞÔÚÃüÁîĞĞÒÔ¼°¶îÍâÅäÖÃ¾ùÎ´Ö¸¶¨µÄÊ±ºò²ÅÊ¹ÓÃ)
+# ä¸»æœºä¼˜å…ˆçº§ï¼šå‘½ä»¤è¡Œ--onå‚æ•°æŒ‡å®š > $ALTUSERHOSTSé¢å¤–çš„ > $defaultuserhosts(é»˜è®¤æŒ‡å®šä¸»æœºæ–‡ä»¶åªæœ‰åœ¨å‘½ä»¤è¡Œä»¥åŠé¢å¤–é…ç½®å‡æœªæŒ‡å®šçš„æ—¶å€™æ‰ä½¿ç”¨)
 if test -n "$userhosts"
 then
 	test -n "$ALTUSERHOSTS" && userhosts="$userhosts `$STRIPCOMMENTS $ALTUSERHOSTS 2> /dev/null`"
@@ -425,24 +425,24 @@ else
 	userhosts="`$STRIPCOMMENTS $ALTUSERHOSTS 2> /dev/null`"
 fi
 
-# ¼ì²é±ØĞëÉèÖÃuserhosts
-# test -z ×Ö·û´®³¤¶ÈÎª0Ê±ÎªÕæ
-#      -n ×Ö·û´®³¤¶È²»Îª0Ê±ÎªÕæ
-# 	   -a ÎÄ¼ş´æÔÚÔòÎªÕæ Í¬-e
-#      -d ÎÄ¼ş´æÔÚÇÒÊÇÒ»¸öÄ¿Â¼ÔòÎªÕæ
-#      -w ÎÄ¼ş´æÔÚÇÒ¿ÉĞ´ÔòÎªÕæ
-#      -r ÎÄ¼ş´æÔÚÇÒ¿É¶ÁÔòÎªÕæ
-#      -x ÎÄ¼ş´æÔÚÇÒ¿ÉÖ´ĞĞÔòÎªÕæ
-#      -o »òÕß Ïàµ±ÓÚ|| ¾ßÓĞ¶ÌÂ·¹¦ÄÜ
+# æ£€æŸ¥å¿…é¡»è®¾ç½®userhosts
+# test -z å­—ç¬¦ä¸²é•¿åº¦ä¸º0æ—¶ä¸ºçœŸ
+#      -n å­—ç¬¦ä¸²é•¿åº¦ä¸ä¸º0æ—¶ä¸ºçœŸ
+# 	   -a æ–‡ä»¶å­˜åœ¨åˆ™ä¸ºçœŸ åŒ-e
+#      -d æ–‡ä»¶å­˜åœ¨ä¸”æ˜¯ä¸€ä¸ªç›®å½•åˆ™ä¸ºçœŸ
+#      -w æ–‡ä»¶å­˜åœ¨ä¸”å¯å†™åˆ™ä¸ºçœŸ
+#      -r æ–‡ä»¶å­˜åœ¨ä¸”å¯è¯»åˆ™ä¸ºçœŸ
+#      -x æ–‡ä»¶å­˜åœ¨ä¸”å¯æ‰§è¡Œåˆ™ä¸ºçœŸ
+#      -o æˆ–è€… ç›¸å½“äº|| å…·æœ‰çŸ­è·¯åŠŸèƒ½
 test -z "$userhosts" && usage_and_exit 1
 
-# ±éÀúpackagesÁĞ±í
+# éå†packagesåˆ—è¡¨
 for p in "$@"
 do
-	# Ñ°ÕÒ°ü´æµµÎÄ¼ş
+	# å¯»æ‰¾åŒ…å­˜æ¡£æ–‡ä»¶
 	find_package "$p"
 	
-	# Èç¹ûPARFILEÎª¿ÕÔò½«¾¯¸æĞÅÏ¢·¢ËÍµ½str ¼ÌĞø´¦ÀíÏÂÒ»¸ö°ü
+	# å¦‚æœPARFILEä¸ºç©ºåˆ™å°†è­¦å‘Šä¿¡æ¯å‘é€åˆ°str ç»§ç»­å¤„ç†ä¸‹ä¸€ä¸ªåŒ…
 	if test -z "$PARFILE"
 	then
 		warning "Cannot find package file $p"
@@ -461,7 +461,7 @@ do
 	
 	msg="Check build logs for $p in `hostname`:$LOGDIR"
 	echo msg
-	# ·¢ËÍÓÊ¼ş ±¨¸æÈÕÖ¾ÎÄ¼şµÄÎ»ÖÃ
+	# å‘é€é‚®ä»¶ æŠ¥å‘Šæ—¥å¿—æ–‡ä»¶çš„ä½ç½®
 	# mail -s "subject" receiver < file
 	# echo {content} | mail -s "subject" receiver 
 	#    -a {attachfile}
@@ -475,7 +475,7 @@ done
 
 test $EXITCODE -gt 125 && EXITCODE=125
 
-# µÈ´ıËùÓĞºóÌ¨½ø³Ì¶¼Íê³ÉÊ±ÔÙ·µ»Ø
+# ç­‰å¾…æ‰€æœ‰åå°è¿›ç¨‹éƒ½å®Œæˆæ—¶å†è¿”å›
 #wait
 
 exit $EXITCODE 
