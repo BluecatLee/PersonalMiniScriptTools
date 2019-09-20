@@ -217,36 +217,77 @@ warning() {
 	echo "$@" 1>&2
 	EXITCODE=`expr $EXITCODE + 1`
 }
-                                                                                                                        
-ALLTARGETS=
-altlogdir=
-altsrcdirs=
-ALTUSERHOSTS=
-BUILDBEGIN=./.build/begin
-BUILDEND=./.build/end
-BUILDHOME=$HOME/.build
-CHECKTARGETS=check
-CONFIGUREDIR=.
-CONFIGUREFLAGS=
-DATEFLAGS="+%Y.%m.%d.%H.%M.%S"
-EXITCODE=0
-EXTRAENVIRONMENT=
-INDENT="awk '{ print \"\t\t\t\" \$0 }'"
-JOINLINES="tr '\n' '\040'"
-LOGDIR=
+    
+# 程序名称
 PROGRAM=`basename $0`
-SCP=scp
-SSH=ssh
-SSHFLAGS=${SSHFLAGS--x}
-STRIPCOMMENTS='sed -e s/#.*$//'
-userhosts=
+# 版本编号
 VERSION=1.0
+# 时间戳
+DATEFLAGS="+%Y.%m.%d.%H.%M.%S"
+
+# 默认使用ssh scp连接远程主机
+# 对于旧式不安全的远程shell站点 可以更换为rsh rcp
+SSH=ssh
+SCP=scp
+# 关闭ssh建立加密通道供X Window System流量使用的功能
+SSHFLAGS=${SSHFLAGS--x}
+
+	
+# 程序或mark target构建用	
+ALLTARGETS=
+# 日志文件的另一个位置
+altlogdir=
+# 来源文件的另一个位置
+altsrcdirs=
+# 列出额外主机的文件
+ALTUSERHOSTS=
+
+# 构建开始时在远程主机的登录shell内执行 提供进一步的定制和日志文件的报告
+BUILDBEGIN=./.build/begin
+# 构建结束时在远程主机登录shell内执行
+BUILDEND=./.build/end
+# 初始化文件所在目录
+BUILDHOME=$HOME/.build
+
+# 执行包测试的make target名称
+CHECKTARGETS=check
+# 配置脚本的子目录
+CONFIGUREDIR=.
+# 配置程序的标识
+CONFIGUREFLAGS=
+
+
+# 默认的额外环境变量
+EXTRAENVIRONMENT=
+
+# 将数据流过滤成内缩状(格式化输出) 此处将每行缩进3个制表符
+# awk
+# 	$0表示整个记录
+INDENT="awk '{ print \"\t\t\t\" \$0 }'"
+# 将换行字符置换为空格(\040:空格的8进制的ascii值)
+JOINLINES="tr '\n' '\040'"
+
+
+# 本地日志目录
+LOGDIR=
+
+
+
+
+# 去掉注释
+STRIPCOMMENTS='sed -e s/#.*$//'
+# 在命令行上指定额外的构建主机
+userhosts=
+
+# 退出码
+EXITCODE=0
 
 # default init files
 defaultdirectories=$BUILDHOME/directories
 defaultuserhosts=$BUILDHOME/userhosts
 
 # 寻找包分发的位置列表 如果用户未提供个人化列表 则使用默认列表
+# 去除初始化文件的注释 如果内容为空 则使用默认列表
 SRCDIRS="`$STRIPCOMMENTS $defaultdirectories 2> /dev/null`"
 test -z "$SRCDIRS" && \
 	SRCDIRS="
@@ -259,6 +300,7 @@ test -z "$SRCDIRS" && \
 		/var/tmp
 	"
 
+# $#: 参数个数
 while test $# -gt 0
 do
 	case $1 in
