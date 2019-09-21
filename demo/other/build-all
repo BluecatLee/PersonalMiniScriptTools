@@ -442,7 +442,7 @@ do
 	# 寻找包存档文件
 	find_package "$p"
 	
-	# 如果PARFILE为空则将警告信息发送到str 继续处理下一个包
+	# 如果PARFILE为空则将警告信息发送到stderr 继续处理下一个包
 	if test -z "$PARFILE"
 	then
 		warning "Cannot find package file $p"
