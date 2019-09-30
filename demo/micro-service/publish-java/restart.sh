@@ -32,20 +32,35 @@ function restart() {
 if [ ! -n "$1" ]; then 
 	echo "restart error: params cannot be empty!"
 elif [ "$1" == "all" ]; then
-	restart 'common'
-	restart 'goods'
-	restart 'order'
-	restart 'supplier'
-	restart 'purchaser'
-	restart 'pay'
-	restart 'info'
-	restart 'pay'
-	restart 'search'
-	restart 'platform'
+	starttime=`date +'%Y-%m-%d %H:%M:%S'`
 
-	restart 'site'
-	restart 'third'
-	restart 'boss'
+	restart 'common' &
+	restart 'goods' &
+	restart 'order' &
+	restart 'supplier' & 
+	restart 'purchaser' &
+	restart 'pay' &
+	restart 'info' &
+	restart 'pay' &
+	restart 'search' & 
+	restart 'platform' & 
+
+	wait
+
+	restart 'site' &
+	restart 'third' &
+	restart 'boss' &
+
+	wait
+
+	endtime=`date +'%Y-%m-%d %H:%M:%S'`
+
+	start_seconds=$(date --date="$starttime" +%s)
+	end_seconds=$(date --date="$endtime" +%s)
+
+	echo "==== Success restart all ===="
+	echo "本次运行时间： "$((end_seconds-start_seconds))"s"
+	
 else 
 	restart $1
 fi
