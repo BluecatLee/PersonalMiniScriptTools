@@ -43,7 +43,7 @@ function publish() {
 	ssh root@$HOST "rm -rf $DES/$PROJECT_NAME'.jar'" && scp $SRC root@$HOST:$DES/$PROJECT_NAME".jar"
 
 	#重启远程服务
-    ssh root@$HOST "bash $RESTART_SCRIPT $PARAM"
+    	ssh root@$HOST "bash $RESTART_SCRIPT $PARAM"
 
 }
 
@@ -58,10 +58,10 @@ elif [ "$1" == "all" ]; then
 	publish 'supplier' & 
 	publish 'purchaser' &
 	publish 'info' &
-    publish 'search' &
+    	publish 'search' &
 	publish 'order' & 
-    publish 'platform' &
-    publish 'pay' &
+    	publish 'platform' &
+    	publish 'pay' &
 
 	wait
 
