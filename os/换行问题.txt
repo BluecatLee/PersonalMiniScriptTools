@@ -1,0 +1,17 @@
+#windows \r\n 转成unix \n
+1.
+#去掉\r 适用于ASCII文件形式 
+sed -i 's/\r$//' {filename}
+
+2.
+# 如果文件是Unicode编码的 使用下面的方式
+# 匹配所有换行符替换为\n
+perl -p -i -e "s/\R/\n/g" {filename}
+
+3.
+#利用vim工具修改文件的格式由dos改为unix
+:set ff=unix 并保存  (注: :set ff 查看文件格式)
+
+4.
+#利用dos2unix工具 需要安装
+dos2unix {filename}
