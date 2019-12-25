@@ -1,0 +1,11 @@
+# put in /etc/logrotate.d/
+
+/data/yxcg/task/log/*.log {
+    weekly
+    rotate 10
+    copytruncate
+    delaycompress
+    compress
+    notifempty
+    missingok
+}
