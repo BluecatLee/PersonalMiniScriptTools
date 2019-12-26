@@ -1,0 +1,72 @@
+#多个客户端都可以使用一个配置文件 
+#但是每个客户端需要有自己的证书和秘钥
+#windows上配置文件以.ovpn格式结尾
+
+#作为客户端
+client
+
+#tun或tap虚拟网卡 需要和服务端一致 防火墙放行
+;dev tap
+dev tun
+
+#如果有多个 windows系统需要指定TAP-Win32适配器名字
+;dev-node MyTap
+
+#协议类型 tcp/udp 需要和服务端一致
+;proto udp
+proto tcp
+
+#服务端的主机名/ip和端口
+#可以有多个服务端 负载均衡
+remote my-server-1 1194
+;remote my-server-2 1194
+
+#随机选择一个服务端 否则是默认的轮询
+;remote-random
+
+#尝试无限期的解析服务端的主机名 如果客户端是笔记本 网络连接不稳定时非常有用
+resolv-retry infinite
+
+#大部分客户端不需要绑定到一个特殊的本地端口号上
+nobind
+
+#初始化后降级权限(非windows环境可配置)
+;user nobody
+;group nobody
+
+#重启保存状态
+persist-key
+persist-tun
+
+#如果使用http代理来访问实际的vpn服务端，需要设置代理的ip port
+;http-proxy-retry # retry on connection failures
+;http-proxy [proxy server] [proxy port #]
+
+#无线网经常会产生重复的数据包
+#设置此选项来消除重复数据包的警告信息
+;mute-replay-warnings
+
+#设置ssl/tls参数
+#建议为每个客户端使用独立的.crt/.key文件对
+#ca证书可以给所有客户端使用
+ca ca.crt
+cert client.crt
+key client.key
+
+#通过检查服务端证书是否有nsCertType字段 来验证服务端证书 可以防止某些攻击
+ns-cert-type server
+
+#如果服务端使用了tls-auth key 则每个客户端也需要使用这个key 客户端第二个参数是1
+;tls-auth ta.key 1
+
+#选择加密算法 如果服务端使用了 客户端也必须使用
+;cipher x
+
+#压缩 如果服务端使用了 客户端才能使用
+comp-lzo
+
+#日志等级
+verb 3
+
+#静默重复数据
+;mute 20

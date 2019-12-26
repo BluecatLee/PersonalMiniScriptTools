@@ -1,0 +1,142 @@
+#服务端配置
+#windows上使用路径分隔符需要是双反斜杠
+
+#监听本地ip
+;local a.b.c.d
+
+#监听端口 监听多个端口可以设置多个服务端实例
+#防火墙需要放行端口
+port 1194
+
+#协议类型 tcp/udp
+proto tcp
+;proto udp
+
+#tun会创建一个路由ip隧道
+#tap会创建一个以太网隧道
+#如果预创建了tap0虚拟接口 则使用dev tap0， 并把它桥接到网卡
+#如果要控制访问权限 必须要对TUN/TAP接口创建防火墙规则
+#在非windows机器 可以给个明确的数字 比如tap0
+#在windows机器 使用dev-node
+;dev tap
+dev tun
+
+#如果有多个 windows系统需要指定TAP-Win32适配器名字
+;dev-node MyTap
+
+#服务端和所有客户端使用同一个ca证书
+#服务端需要有自己的证书和秘钥
+#支持pkcs12格式的key
+ca ca.crt
+cert server.crt
+key server.key  # This file should be kept secret
+
+#Diffie-Hellman参数
+#Diffie-Hellman算法保证key安全穿越网络
+dh dh2048.pem
+
+#网络拓补 为支持小于等于2.0.9的windows客户端需要设置为net30
+;topology subnet
+
+#配置服务器模式 提供一个vpn子网
+#10.8.0.1服务端使用 剩余的供客户端用
+#如果是桥接 注释掉改配置
+server 10.8.0.0 255.255.255.0
+
+#保留客户端和虚拟ip映射关系的记录
+#如果服务端重启 客户端可以使用之前的虚拟ip
+ifconfig-pool-persist ipp.txt
+
+#服务端桥接模式
+#首先系统需要桥接TAP接口和NIC接口
+#然后手动设置IP/netmask 如10.8.0.4 255.255.255.0
+#最后需要设置ip段给客户端使用 如10.8.0.50 10.8.0.100
+;server-bridge 10.8.0.4 255.255.255.0 10.8.0.50 10.8.0.100
+
+#服务端使用dhcp代理的桥接
+#客户端通过dhcp服务端动态获取ip和dns
+#首先系统需要桥接TAP接口和NIC接口
+#客户端侧的TAP是适配器绑定到了dhcp客户端才有用
+;server-bridge
+
+#推送路由给客户端 来允许客户端能够访问到服务端后的其他内部子网
+;push "route 192.168.10.0 255.255.255.0"
+;push "route 192.168.20.0 255.255.255.0"
+
+#以配置文件的方式为特定客户端指定ip 设置配置文件所在目录
+;client-config-dir ccd
+;route 192.168.40.128 255.255.255.248
+
+#routing方式 非桥接方式 以配置文件的方式为特定客户端指定ip
+;client-config-dir ccd
+;route 10.9.0.0 255.255.255.252
+# Then add this line to ccd/Thelonious:
+#   ifconfig-push 10.9.0.1 10.9.0.2
+
+#如果要修改防火墙规则 可以直接修改虚拟网卡的规则
+#创建一个脚本动态修改防火墙规则 此处设置脚本位置
+;learn-address ./script
+
+#该指令使所有客户端通过VPN重定向默认网关 可能造成ip拥挤
+;push "redirect-gateway def1 bypass-dhcp"
+
+#推送某个特定的windows网络设置给客户端
+;push "dhcp-option DNS 208.67.222.222"
+;push "dhcp-option DNS 208.67.220.220"
+
+#允许不同的客户端能够相互感知到 否则客户端只能看到服务端
+;client-to-client
+
+#多客户端使用同样的证书秘钥对 或使用同样的名称时 放开注释 不推荐
+;duplicate-cn
+
+#长连接 客户端服务端两侧通过类似ping的消息传递来确认对方是否挂掉
+#ping间隔10s 超时120s
+keepalive 10 120
+
+#HMAC防火墙 提供tls额外的安全保护
+#tls认证秘钥 服务端第二个参数是0 客户端必须和服务端的key一致
+tls-auth ta.key 0 # This file is secret
+
+#选择一个加密算法
+cipher AES-256-CBC
+
+#压缩 并推送到客户端(v2.4+)
+;compress lz4-v2
+;push "compress lz4-v2"
+
+#用于兼容使用老的comp-lzo压缩的客户端 如果服务端配置了这个指令 客户端也必须使用
+;comp-lzo
+
+#允许的客户端最大并发连接数
+;max-clients 100
+
+#初始化后降级权限(非windows环境可配置)
+;user nobody
+;group nobody
+
+#持久化
+#可以避免访问某个特定资源 但是由于权限降级可能无法访问到的问题
+persist-key
+persist-tun
+
+#输出一个展示当前连接信息的短状态文件 每分钟清空重写
+status openvpn-status.log
+
+#定义日志文件位置 log是清空重写 log-append是追加
+#默认日志信息会到syslog(windows上如果以服务方式启动则会保存在"\Program Files\OpenVPN\log"目录)
+;log         openvpn.log
+;log-append  openvpn.log
+
+#设置日志等级
+#0：fatal
+#4：info
+#5和6：debug
+#9：all
+verb 3
+
+#静默重复数据 日志最多保留20条重复数据
+;mute 20
+
+#服务端重启时通知客户端 客户端可以自动重连
+explicit-exit-notify 1
