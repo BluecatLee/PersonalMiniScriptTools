@@ -1,0 +1,61 @@
+proxy_bind			在调用connect之前把上游socket绑定到一个本地地址
+					proxy_bind $remote_addr transparent;
+					
+proxy_buffering		代理的时候，开启或关闭缓冲后端服务器的响应
+					proxy_buffering on|off;			
+
+proxy_buffers		设置缓冲区的数量和每块大小 缓存的是nginx从上游服务器获取的响应
+					如果没有开启缓存 则每块大小表示从响应数据中一次读取的最大长度 然后直接响应给客户端
+					proxy_buffers 8 4k;					
+
+proxy_buffer_size	设置缓冲区的大小 缓存的是nginx从上游服务器获取的响应 默认等于proxy_buffers设置的每一块缓冲区的大小
+					proxy_buffer_size 4k;
+				
+proxy_busy_buffers_size		设置写缓冲的大小 如果没有读取到全部响应但是写缓冲到达该值 则会向客户端发送响应或者可以写到临时文件中
+							默认是proxy_buffer_size和proxy_buffers指令设置单块缓冲大小的两倍
+							proxy_busy_buffers_size 8k;
+							
+proxy_max_temp_file_size	设置临时文件的最大容量
+							proxy_max_temp_file_size 1024m;
+
+proxy_temp_file_write_size	设置每次写到临时文件的大小限制 	
+							默认值是proxy_buffer_size指令和proxy_buffers指令定义的每块缓冲区大小的两倍
+							proxy_temp_file_write_size 8k;
+							
+proxy_temp_path				设置临时文件的存放路径 外加最多三层子目录		
+							proxy_temp_path path [level1 [level2 [level3]]];
+					
+proxy_connect_timeout		设置nginx与上游服务器的连接超时时间	默认60s 最大不超过75s
+							proxy_connect_timeout 60s;
+							
+proxy_http_version			设置代理使用的HTTP协议版本 默认1.0。1.1版本推荐在使用keepalive时一起
+
+proxy_ignore_client_abort	决定当客户端在响应传输完成前就关闭连接时，nginx是否应关闭后端连接。
+							proxy_ignore_client_abort on|off;
+							
+proxy_pass					设置后端服务器的协议和地址，还可以设置可选的URI以定义本地路径和后端服务器的映射关系
+							也可使用unix套接字地址来定义
+							或者使用upstream名称
+							如果没有使用URI 则传到后端服务器的的请求URI是原始URI
+							如果使用了URI(包括/) 则会进行规范化，即location配置中匹配部分被替换为proxy_pass指令中定义的URI 【虚拟路径代理】
+							
+proxy_next_upstream			如果proxy_pass使用的是upstream，则这个指令设置何种失败会发送到下一台后端服务器	
+							proxy_next_upstream error | timeout | invalid_header | http_500 | http_502 | http_503 | http_504 | http_403 | http_404 | non_idempotent | off ...;
+							
+proxy_next_upstream_timeout	限制了重试请求可以被传递给下一台服务器的时间
+proxy_next_upstream_tries	限制了重试请求可以被传递给下一台服务器的次数	
+
+proxy_read_timeout			定义从后端服务器读取数据的超时时间 如果超时就关闭连接 默认60s 【相邻两次读操作的最大时间间隔】		
+proxy_send_timeout			定义向后端服务器转发数据的超时时间 如果超时就关闭连接 默认60s 【相邻两次写操作的最大时间间隔】		
+
+proxy_set_header			重新定义或添加发往后端服务器的header
+							默认会重新定义的： proxy_set_header Host $proxy_host;  #Host信息重写为nginx的host
+											   proxy_set_header Connection close;  #Connection close 请求响应完成时 关闭tcp连接 有利于处理高并发
+											   
+proxy_pass_header			转发给后端服务器时忽略掉某些头
+
+proxy_redirect				设置后端服务器“Location”响应头和“Refresh”响应头的替换文本，即重写Location和Refresh		
+							proxy_redirect http://localhost:8000/two/ /; #如果有Location Refresh 则重写到/
+							proxy_redirect default; #重写到location配置的URI
+							proxy_redirect off; #不重写
+							

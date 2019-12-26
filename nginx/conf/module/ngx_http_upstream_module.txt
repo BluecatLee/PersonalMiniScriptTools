@@ -1,0 +1,33 @@
+upstream appservers {  
+    zone appservers 64k;  
+    server appserv1.example.com      weight=5;  
+    server appserv2.example.com:8080 fail_timeout=5s slow_start=30s;  
+    server 192.0.2.1                 max_fails=3;  
+  
+    server reserve1.example.com:8080 backup;  
+    server reserve2.example.com:8080 backup;  
+}  
+  
+server {  
+    location / {  
+        proxy_pass http://appservers;  
+        health_check;  
+    }  
+  
+    location /upstream_conf {  
+        upstream_conf;  
+        allow 127.0.0.1;  
+        deny all;  
+    }  
+} 
+
+
+#######################################################################
+weight  		设定后端服务器的权重 默认1
+max_fails		设定与后端服务器通信失败重试最大次数
+fail_timeout	
+
+backup			标记为备用服务器。主服务不可用才会使用备用服务器
+down			标记服务器不可用。可以和ip_hash结合使用 以便保留客户端IP地址的当前散列。
+
+route=string	设置服务器的路由名称

@@ -5,10 +5,10 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=
 
 # 每天零点检查更新证件有过期的供应商/采购商状态
-  0  0  *  *  * root  sh /data/yxcg/task/updateExpireQualificationStatus.sh
+#  0  0  *  *  * root  sh /data/yxcg/task/updateExpireQualificationStatus.sh
 
 # 每周一早上9:30发送短信 通知供应商/采购商证件即将过期/已经过期
   30 09 *  *  1 root  sh /data/yxcg/task/sendSms.sh
 
 # 每分钟检查更新平台费率变更
-  *  *  *  *  * root  sh /data/yxcg/task/updateCategoryRate.sh
+#  *  *  *  *  * root  sh /data/yxcg/task/updateCategoryRate.sh
