@@ -1,0 +1,26 @@
+port 1194
+proto tcp
+dev tun
+ca /etc/openvpn/xx/ca.crt
+cert /etc/openvpn/xx/server.crt
+key /etc/openvpn/xx/server.key
+dh /etc/openvpn/server/dh1024.pem
+server 172.18.0.0 255.255.255.0
+ifconfig-pool-persist ipp.txt
+
+push "route 10.31.207.0 255.255.255.0"
+push "route 10.31.205.0 255.255.255.0"
+push "route 10.30.33.0 255.255.255.0"
+push "route 10.27.121.0 255.255.255.0"
+push "route 10.30.38.0 255.255.255.0"
+push "route 10.29.44.0 255.255.255.0"
+push "route 100.114.164.0 255.255.255.0"
+push "route 10.30.236.0 255.255.255.0"
+
+client-to-client
+keepalive 10 120
+comp-lzo
+persist-key
+persist-tun
+status openvpn-status.log
+verb 3

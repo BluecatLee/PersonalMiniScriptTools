@@ -7,8 +7,8 @@ nobind
 persist-key
 persist-tun
 ca /etc/openvpn/xx/ca.crt
-cert /etc/openvpn/xx/uat.crt
-key /etc/openvpn/xx/uat.key
+cert /etc/openvpn/xx/client1.crt
+key /etc/openvpn/xx/client1.key
 ns-cert-type server
 comp-lzo
 verb 3
