@@ -1,0 +1,8 @@
+#发布jar包到nexus的示例
+#如果使用本地maven，需要再setting.xml中配置
+#	<server>
+#		<id>releases</id>
+#		<username>admin</username>
+#		<password>admin123</password>
+#   </server>
+mvn deploy:deploy-file -Dmaven.test.skip=true -Dfile=E:\dcfirmsdk.jar -DgroupId=netbank.firm -DartifactId=dcfirmsdk -Dversion=1.0 -Dpackaging=jar -DrepositoryId=releases -Durl=http://maven.yegoo.cc:8081/nexus/content/repositories/releases
