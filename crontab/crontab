@@ -18,3 +18,8 @@ MAILTO=root
 # (安装ntpdate: yum -y install ntpdate)
 #  时间服务器ntp.api.bz
 0 5 * * * root /usr/sbin/ntpdate -u ntp.api.bz
+
+
+
+#说明：需要指定执行的用户
+#定时文件可以使用外部文件，放在对应的目录下如/etc/cron.d/ 且文件权限必须是644，755会导致定时任务不执行
