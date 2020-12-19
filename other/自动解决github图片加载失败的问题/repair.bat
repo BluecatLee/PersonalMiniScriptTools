@@ -1,4 +1,6 @@
-@echo off
+@echo off 
+rem 必须以管理员身份运行
+rem dont ask question.  just practice.
 goto comment1
 	echo命令：回显
 		@echo off 关闭所有命令的回显(包括本身这条命令)
@@ -9,6 +11,7 @@ goto comment1
 set BackupDir=%USERPROFILE%
 set BackupFile=hosts.bak
 set HostFile=C:\WINDOWS\system32\drivers\etc\hosts
+set TmpDir=%USERPROFILE%\Desktop
 goto comment2
 	set：临时设置环境变量,注意等号右边的空格也会被当成值的一部分。如set BAT_HOME=c:\bat
 		 可以用 /p 参数改成可交互方式进行设置
@@ -26,11 +29,22 @@ goto comment3
 
 :: 问题域名集合(可以放到外部文件，程序读取。或者直接放到js中进行逻辑处理)
 set addresses=^
-raw.githubusercontent.com ^
-gist.githubusercontent.com ^
-cloud.githubusercontent.com ^
-camo.githubusercontent.com ^
-avatars0.githubusercontent.com
+gist.github.com^
+ assets-cdn.github.com^
+ raw.githubusercontent.com^
+ gist.githubusercontent.com^
+ cloud.githubusercontent.com^
+ camo.githubusercontent.com^
+ avatars0.githubusercontent.com^
+ avatars1.githubusercontent.com^
+ avatars2.githubusercontent.com^
+ avatars3.githubusercontent.com^
+ avatars4.githubusercontent.com^
+ avatars5.githubusercontent.com^
+ avatars6.githubusercontent.com^
+ avatars7.githubusercontent.com^
+ avatars8.githubusercontent.com
+
 
 :: 获取域名对应的真实ip
 for %%I in (%addresses%) do (
@@ -38,19 +52,47 @@ for %%I in (%addresses%) do (
 	:: 注释真的有毒 如果无法执行 把下面的注释删了
 	rem wscript getIp.vbs %addresses%  不知道为啥 这样执行之后返回403 
 
-	curl -XPOST https://www.ipaddress.com/search/ -d {"host": "%%I"} >> %%I.txt 
+	rem curl -L --connect-timeout 10 -m 90 -XPOST https://www.ipaddress.com/search/ -d {"host": "%%I"} >> %%I.html
+
+	rem for /f "tokens=1,* delims=." %%i in ("%addresses%") do (
+  	rem	rem echo %%i
+	rem	rem echo %%j
+	rem	rem 变量延迟
+	rem	rem setlocal enabledelayedexpansion
+  	rem	set secondRealm=%%j
+	rem	goto :got
+	rem )
+	rem :got
+	:: 下载页面
+	:: 无法下载 网站有限制 如何处理？
+	rem curl -kIvL -e "; auto" --connect-timeout 10 -m 90 https://%secondRealm%.ipaddress.com/%addresses% >> %TmpDir%\%addresses%.html
+
 	
+
+	setlocal enabledelayedexpansion
+	set /a row=0
+	for /f "tokens=*" %%t in ('nslookup %%I 8.8.8.8') do (
+		set /a row+=1
+		rem echo !row!
+		if !row!==4 (
+		    	set  var=%%t
+			rem 获取到的ip
+			rem echo !var:~10!
+			rem echo  %%I
+			echo !var:~10! %%I>>%systemroot%/System32/drivers/etc/hosts
+			
+			rem  dns污染? 依旧没有获取到新的正确的ip
+			rem  事实上的有效ip: 199.232.96.133
+			if %%I equ gist.github.com (echo  > NUL) else if %%I equ assets-cdn.github.com (echo  > NUL) else (
+				echo 199.232.96.133 %%I>>%systemroot%/System32/drivers/etc/hosts
+			)
+
+		)
+	)
+
 )
 	
-
-:: 取消hosts文件的只读属性
-attrib -R C:\WINDOWS\system32\drivers\etc\hosts 
-
-::findstr /v "www.test.com"
-
-:: 往hosts文件中追加内容
-::@echo 127.0.0.1 baidu.com >>C:\WINDOWS\system32\drivers\etc\hosts 
-
-::ipconfig /flushdns
+ipconfig /flushdns
 
 pause
+
