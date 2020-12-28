@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# An example hook script to verify what is about to be committed.
+# Called by "git commit" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message if
+# it wants to stop the commit.
+#
+# To enable this hook, rename this file to "pre-commit".
+
+
+# 如何不出意外的摸鱼 
+# 即避免使用非工作git账号提交/推送代码
+# 将该客户端钩子放到本地工作项目的.git\hooks下
+# 如何全局客户端钩子：
+#		配置core.hooksPath 并将钩子文件放到配置目录中。
+#		eg：git config core.hooksPath C:/Users/admin/myGitHooks
+
+
+username=`git config --get user.name`
+
+if [ "${username}" == "BluecatLee" ]; then
+#if [ "${username}" != "{git工作账户名}" ]; then
+cat <<\EOF
+Error: Attempt to commit by non-working account！
+	   Forcing stopped.
+EOF
+	exit 1
+fi
+
